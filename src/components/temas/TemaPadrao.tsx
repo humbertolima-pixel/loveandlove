@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import type { Casal, Frase } from "@/lib/types";
 import ContadorVivo from "@/components/ContadorVivo";
 import SlideshowFotos from "@/components/SlideshowFotos";
 import MosaicoFotos from "@/components/MosaicoFotos";
 import PlayerMusica from "@/components/PlayerMusica";
-import Cronologia from "@/components/Cronologia";
 import TelaConvite from "@/components/TelaConvite";
 
 export default function TemaPadrao({
@@ -73,7 +71,16 @@ export default function TemaPadrao({
 
           <MosaicoFotos fotos={casal.fotos} />
 
-          <Cronologia marcos={casal.marcos} />
+          {casal.historia && (
+            <div className="fade-up max-w-md text-center">
+              <p className="font-body text-xs uppercase tracking-[0.2em] text-rose/70 mb-3">
+                Nossa história
+              </p>
+              <p className="font-body text-cream/85 text-sm leading-relaxed whitespace-pre-line">
+                {casal.historia}
+              </p>
+            </div>
+          )}
 
           {casal.musica_url && (
             <PlayerMusica url={casal.musica_url} autoplay={comecou} />

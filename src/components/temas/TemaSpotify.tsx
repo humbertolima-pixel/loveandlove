@@ -1,45 +1,37 @@
 "use client";
 
-import type { Casal } from "@/lib/types";
+import type { Casal, Frase } from "@/lib/types";
+import PlayerMusica from "@/components/PlayerMusica";
 
 export default function TemaSpotify({
   casal,
+  fraseAleatoria,
   comecou,
   onComecar,
 }: {
   casal: Casal;
+  fraseAleatoria: Frase | null;
   comecou: boolean;
   onComecar: () => void;
 }) {
   const fotos = casal.fotos.length > 0 ? casal.fotos : [];
   const capa = fotos[0];
 
-  const faixas = casal.marcos.length > 0
-    ? casal.marcos
-        .slice()
-        .sort((a, b) => a.data.localeCompare(b.data))
-        .map((m, i) => ({
-          titulo: m.titulo,
-          desc: m.titulo,
-          duracao: i === casal.marcos.length - 1 ? "∞" : `${3 + i}:${(12 * i) % 60}`.padEnd(4, "0"),
-          img: fotos[i % Math.max(fotos.length, 1)] ?? capa,
-        }))
-    : [
-        {
-          titulo: "Aqui, agora",
-          desc: casal.frase,
-          duracao: "∞",
-          img: capa,
-        },
-      ];
+  const paragrafos = casal.historia
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
-  const momentos = fotos.slice(0, 6).map((f, i) => ({
-    titulo: i === 0 ? "O nosso momento" : "Em alta",
-    sub: "favorito",
-    img: f,
-  }));
+  const faixas = paragrafos.length > 0
+    ? paragrafos.map((texto, i) => ({
+        titulo: `Faixa ${i + 1}`,
+        texto,
+        duracao: i === paragrafos.length - 1 ? "∞" : `${3 + i}:${(12 * i) % 60}`.padEnd(4, "0"),
+        img: fotos[i % Math.max(fotos.length, 1)] ?? capa,
+      }))
+    : [{ titulo: "Faixa 1", texto: casal.frase, duracao: "∞", img: capa }];
 
-  const embedMusica = obterEmbedMusica(casal.musica_url);
+  const momentos = fotos.slice(0, 12);
 
   return (
     <div className="spotify-root">
@@ -60,6 +52,13 @@ export default function TemaSpotify({
         .spotify-root img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .sp-display { font-family: Georgia, serif; font-weight: 700; }
 
+        @keyframes coracao-flutua {
+          0% { transform: translateY(0) scale(0.8); opacity: 0; }
+          15% { opacity: 1; }
+          100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+        }
+        .coracao { position: absolute; font-size: 1.4rem; animation: coracao-flutua 3.5s ease-in infinite; pointer-events: none; }
+
         header {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
           display: flex; align-items: center; justify-content: space-between;
@@ -75,56 +74,51 @@ export default function TemaSpotify({
           background: linear-gradient(180deg, #2a2a2a, var(--base) 75%);
           flex-wrap: wrap;
         }
-        .hero-cover { width: 200px; height: 200px; flex: 0 0 200px; box-shadow: 0 20px 50px rgba(0,0,0,.6); border-radius: 4px; overflow: hidden; }
+        .hero-cover { width: 220px; height: 220px; flex: 0 0 220px; box-shadow: 0 20px 50px rgba(0,0,0,.6); border-radius: 4px; overflow: hidden; animation: fade-in-up 1s ease-out; }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .eyebrow { font-size: .8rem; font-weight: 700; text-transform: uppercase; }
-        .hero-info h1 { font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; margin: .4rem 0 1rem; }
+        .hero-info h1 { font-size: clamp(2rem, 6vw, 3.8rem); line-height: 1; margin: .4rem 0 1rem; }
         .meta { font-size: .85rem; color: var(--cinza); }
         .meta b { color: var(--branco); }
         .hero-actions { display: flex; align-items: center; gap: 1.2rem; margin-top: 1.6rem; }
-        .play-big { width: 52px; height: 52px; border-radius: 50%; background: var(--verde); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-        .play-big svg { width: 20px; height: 20px; fill: #000; margin-left: 2px; }
+        .play-big { width: 56px; height: 56px; border-radius: 50%; background: var(--verde); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .play-big svg { width: 22px; height: 22px; fill: #000; margin-left: 2px; }
 
-        section { padding: 3rem 4vw; }
+        section.fundo { padding: 3.2rem 4vw; }
         .section-head { margin-bottom: 1.3rem; display: flex; align-items: baseline; gap: .7rem; }
         .section-head h2 { font-size: 1.4rem; font-weight: 800; }
         .sub { font-size: .76rem; color: var(--cinza); }
 
         .tracklist { max-width: 880px; }
-        .track { display: grid; grid-template-columns: 24px 48px 1fr auto; align-items: center; gap: 1rem; padding: .6rem .5rem; border-radius: 6px; }
+        .track { display: grid; grid-template-columns: 24px 56px 1fr auto; align-items: center; gap: 1rem; padding: .7rem .6rem; border-radius: 6px; transition: background .2s; }
+        .track:hover { background: #1e1e1e; }
         .track .num { color: #777; font-size: .82rem; text-align: center; }
-        .track .thumb { width: 44px; height: 44px; border-radius: 4px; overflow: hidden; }
+        .track .thumb { width: 48px; height: 48px; border-radius: 4px; overflow: hidden; }
         .t-title { font-weight: 600; font-size: .9rem; }
-        .t-desc { font-size: .76rem; color: var(--cinza); margin-top: .15rem; line-height: 1.4; }
+        .t-desc { font-size: .78rem; color: var(--cinza); margin-top: .25rem; line-height: 1.45; }
         .dur { color: #777; font-size: .78rem; }
 
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; max-width: 1100px; }
-        .card { background: var(--base-2); border-radius: 8px; padding: .85rem; }
-        .cover { aspect-ratio: 1/1; border-radius: 6px; overflow: hidden; margin-bottom: .7rem; }
-        .c-title { font-weight: 600; font-size: .82rem; }
-        .c-sub { font-size: .72rem; color: var(--cinza); margin-top: .2rem; }
+        .card { aspect-ratio: 1/1; border-radius: 8px; overflow: hidden; transition: transform .25s; }
+        .card:hover { transform: scale(1.04); }
+
+        .artist-row { display: flex; gap: 2.2rem; flex-wrap: wrap; justify-content: center; }
+        .artist { text-align: center; }
+        .a-photo { width: 130px; height: 130px; border-radius: 50%; overflow: hidden; margin-bottom: .8rem; }
+        .a-name { font-weight: 700; font-size: .92rem; }
+        .a-role { font-size: .78rem; color: var(--cinza); margin-top: .2rem; }
 
         .final-screen {
-          min-height: 70vh; padding: 6vh 6vw; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+          min-height: 90vh; padding: 6vh 6vw 10vh; position: relative; overflow: hidden;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
           background: radial-gradient(circle at 50% 30%, rgba(30,215,96,.16), transparent 60%), var(--preto);
         }
-        .final-cover { width: 180px; height: 180px; border-radius: 8px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,.6); margin-bottom: 1.6rem; }
-        .final-screen h2 { font-size: clamp(2.6rem, 14vw, 6rem); color: var(--verde); }
-        .final-screen p { margin-top: 1.1rem; max-width: 34ch; color: #e2e2e2; line-height: 1.7; }
+        .final-cover { width: 200px; height: 200px; border-radius: 8px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,.6); margin-bottom: 1.8rem; }
+        .final-screen .eyebrow { font-size: .78rem; letter-spacing: .15em; text-transform: uppercase; color: var(--cinza); margin-bottom: .6rem; }
+        .final-screen h2 { font-size: clamp(2.6rem, 14vw, 6.5rem); color: var(--verde); line-height: 1; text-shadow: 0 0 60px rgba(30,215,96,.4); }
+        .final-screen p { margin-top: 1.2rem; max-width: 34ch; color: #e2e2e2; line-height: 1.7; }
 
-        footer { text-align: center; padding: 2rem 1rem 5rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
-
-        .mini-player {
-          position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
-          background: #181818; border-top: 1px solid #282828; padding: .7rem 1.2rem;
-          display: flex; align-items: center; gap: .8rem; font-size: .76rem; color: var(--cinza);
-        }
-        .eq { display: flex; gap: 2px; align-items: flex-end; height: 14px; }
-        .eq i { width: 3px; background: var(--verde); display: block; animation: eq 1s infinite ease-in-out; }
-        .eq i:nth-child(2) { animation-delay: .2s; }
-        .eq i:nth-child(3) { animation-delay: .4s; }
-        @keyframes eq { 0%, 100% { height: 4px; } 50% { height: 14px; } }
-        .bar { flex: 1; height: 3px; background: #404040; border-radius: 2px; overflow: hidden; }
-        .bar i { display: block; height: 100%; width: 100%; background: var(--verde); }
+        footer { text-align: center; padding: 2rem 1rem 3rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
       `}</style>
 
       <header>
@@ -132,9 +126,7 @@ export default function TemaSpotify({
       </header>
 
       <section className="hero">
-        {capa && (
-          <div className="hero-cover"><img src={capa} alt="capa" /></div>
-        )}
+        {capa && <div className="hero-cover"><img src={capa} alt="capa" /></div>}
         <div className="hero-info">
           <div className="eyebrow">playlist</div>
           <h1 className="sp-display">{casal.nome1} & {casal.nome2}</h1>
@@ -150,8 +142,18 @@ export default function TemaSpotify({
         </div>
       </section>
 
-      <section id="sp-faixas">
-        <div className="section-head"><h2>Faixas</h2><span className="sub">a nossa cronologia</span></div>
+      <section className="fundo" style={{ maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+        <div className="eyebrow" style={{ color: "var(--verde)" }}>sobre a playlist</div>
+        <p style={{ marginTop: ".8rem", color: "#dcdcdc", lineHeight: 1.75 }}>{casal.frase}</p>
+        {fraseAleatoria && (
+          <p style={{ marginTop: "1rem", color: "var(--verde)", fontStyle: "italic", fontSize: ".92rem" }}>
+            &ldquo;{fraseAleatoria.texto}&rdquo;
+          </p>
+        )}
+      </section>
+
+      <section className="fundo" id="sp-faixas">
+        <div className="section-head"><h2>Faixas</h2><span className="sub">a nossa história</span></div>
         <div className="tracklist">
           {faixas.map((f, i) => (
             <div key={i} className="track">
@@ -159,6 +161,7 @@ export default function TemaSpotify({
               <div className="thumb">{f.img && <img src={f.img} alt="" />}</div>
               <div>
                 <div className="t-title">{f.titulo}</div>
+                <div className="t-desc">{f.texto}</div>
               </div>
               <div className="dur">{f.duracao}</div>
             </div>
@@ -167,39 +170,50 @@ export default function TemaSpotify({
       </section>
 
       {momentos.length > 0 && (
-        <section>
+        <section className="fundo">
           <div className="section-head"><h2>Em alta pra você</h2><span className="sub">momentos favoritos</span></div>
           <div className="grid-cards">
             {momentos.map((m, i) => (
-              <div key={i} className="card">
-                <div className="cover"><img src={m.img} alt="" /></div>
-                <div className="c-title">{m.titulo}</div>
-                <div className="c-sub">{m.sub}</div>
-              </div>
+              <div key={i} className="card"><img src={m} alt="" /></div>
             ))}
           </div>
         </section>
       )}
 
+      <section className="fundo">
+        <div className="section-head"><h2>Artistas principais</h2><span className="sub">quem canta essa história</span></div>
+        <div className="artist-row">
+          <div className="artist">
+            {fotos[0] && <div className="a-photo"><img src={fotos[0]} alt="" /></div>}
+            <div className="a-name">{casal.nome1}</div>
+            <div className="a-role">vocal principal</div>
+          </div>
+          <div className="artist">
+            {(fotos[1] ?? fotos[0]) && <div className="a-photo"><img src={fotos[1] ?? fotos[0]} alt="" /></div>}
+            <div className="a-name">{casal.nome2}</div>
+            <div className="a-role">vocal de apoio (sempre)</div>
+          </div>
+        </div>
+      </section>
+
+      {casal.musica_url && (
+        <section className="fundo" style={{ textAlign: "center" }}>
+          <div className="eyebrow" style={{ color: "var(--verde)" }}>tocando agora</div>
+          <div style={{ marginTop: "1.2rem" }}>
+            <PlayerMusica url={casal.musica_url} autoplay={comecou} />
+          </div>
+        </section>
+      )}
+
       <section className="final-screen">
+        {comecou && <CoracoesFlutuantes />}
         {capa && <div className="final-cover"><img src={capa} alt="" /></div>}
         <span className="eyebrow">tocando agora</span>
         <h2 className="sp-display">TE AMO</h2>
         <p>{casal.frase}</p>
       </section>
 
-      <footer>Love &amp; Love — feito com carinho, só pra você</footer>
-
-      {comecou && embedMusica && (
-        <div className="mini-player">
-          <div className="eq"><i /><i /><i /></div>
-          <span>tocando agora</span>
-          <div className="bar"><i /></div>
-          <div style={{ position: "fixed", width: 1, height: 1, bottom: 0, right: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
-            <iframe src={embedMusica} width="300" height="80" allow="autoplay; encrypted-media" title="música" />
-          </div>
-        </div>
-      )}
+      <footer>Love &amp; Love — feito com carinho, só pra você 💛</footer>
 
       {!comecou && (
         <div
@@ -235,15 +249,19 @@ export default function TemaSpotify({
   );
 }
 
-function obterEmbedMusica(url: string | null): string | null {
-  if (!url) return null;
-  const spotify = url.match(/open\.spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-  if (spotify) {
-    return `https://open.spotify.com/embed/${spotify[1]}/${spotify[2]}?autoplay=1`;
-  }
-  const youtube = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-  if (youtube) {
-    return `https://www.youtube.com/embed/${youtube[1]}?autoplay=1&controls=0`;
-  }
-  return null;
+function CoracoesFlutuantes() {
+  const posicoes = [10, 25, 40, 55, 70, 85];
+  return (
+    <>
+      {posicoes.map((left, i) => (
+        <span
+          key={i}
+          className="coracao"
+          style={{ left: `${left}%`, bottom: "10%", animationDelay: `${i * 0.6}s` }}
+        >
+          💚
+        </span>
+      ))}
+    </>
+  );
 }

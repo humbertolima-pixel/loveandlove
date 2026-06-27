@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { Tema } from "@/lib/types";
 
+const MAX_FOTOS = 15;
+
 function gerarSlug(nome1: string, nome2: string): string {
   const limpar = (s: string) =>
     s
@@ -25,31 +27,10 @@ export async function POST(req: NextRequest) {
     const nome2 = formData.get("nome2") as string;
     const dataInicio = formData.get("data_inicio") as string;
     const frase = formData.get("frase") as string;
+    const historia = (formData.get("historia") as string) || "";
     const musicaUrl = (formData.get("musica_url") as string) || null;
     const tema = ((formData.get("tema") as string) || "padrao") as Tema;
     const paraSempre = formData.get("para_sempre") === "true";
-
-    let marcos: { data: string; titulo: string }[] = [];
-    try {
-      const marcosRaw = formData.get("marcos") as string;
-      if (marcosRaw) {
-        const parsed = JSON.parse(marcosRaw);
-        if (Array.isArray(parsed)) {
-          marcos = parsed
-            .filter(
-              (m) =>
-                m && typeof m.data === "string" && typeof m.titulo === "string"
-            )
-            .slice(0, 8)
-            .map((m) => ({
-              data: m.data,
-              titulo: m.titulo.slice(0, 60),
-            }));
-        }
-      }
-    } catch {
-      marcos = [];
-    }
 
     if (!token || !nome1 || !nome2 || !dataInicio || !frase) {
       return NextResponse.json(
@@ -77,7 +58,7 @@ export async function POST(req: NextRequest) {
     const fotos = formData.getAll("fotos") as File[];
     const urlsFotos: string[] = [];
 
-    for (const foto of fotos.slice(0, 6)) {
+    for (const foto of fotos.slice(0, MAX_FOTOS)) {
       if (!(foto instanceof File) || foto.size === 0) continue;
 
       const extensao = foto.name.split(".").pop();
@@ -113,11 +94,11 @@ export async function POST(req: NextRequest) {
       nome2,
       data_inicio: dataInicio,
       frase,
+      historia,
       fotos: urlsFotos,
       musica_url: musicaUrl,
       tema,
       expira: !paraSempre,
-      marcos,
     });
 
     if (casalError) {

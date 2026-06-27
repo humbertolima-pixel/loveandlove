@@ -1,23 +1,8 @@
-export type Tema =
-  | "padrao"
-  | "netflix"
-  | "spotify"
-  | "instagram"
-  | "tiktok"
-  | "mercadolivre"
-  | "shopee"
-  | "shein"
-  | "facebook"
-  | "youtube";
+export type Tema = "padrao" | "netflix" | "spotify" | "instagram";
 
 export interface Bumps {
   tema_exclusivo?: boolean;
   para_sempre?: boolean;
-}
-
-export interface Marco {
-  data: string; // ISO date
-  titulo: string;
 }
 
 export interface Frase {
@@ -43,10 +28,10 @@ export interface Casal {
   nome2: string;
   data_inicio: string; // ISO date
   frase: string;
+  historia: string;
   fotos: string[]; // URLs do Supabase Storage
   musica_url: string | null;
   tema: Tema;
   expira: boolean;
-  marcos: Marco[];
   criado_em: string;
 }

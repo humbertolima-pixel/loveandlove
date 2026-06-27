@@ -25,11 +25,11 @@ create table if not exists casais (
   nome2 text not null,
   data_inicio date not null,
   frase text not null,
+  historia text not null default '',
   fotos jsonb not null default '[]'::jsonb,
   musica_url text,
   tema text not null default 'padrao',
   expira boolean not null default true,
-  marcos jsonb not null default '[]'::jsonb,
   criado_em timestamptz not null default now()
 );
 

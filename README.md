@@ -29,7 +29,10 @@ npm install
 3. Cole também o conteúdo de `supabase-seed-frases.sql` numa segunda query —
    isso popula a tabela `frases` com 100 frases românticas, sorteadas
    aleatoriamente na página pública de cada casal.
-4. Em **Project Settings > API**, copie:
+4. **Se você já tinha o banco criado de uma versão anterior** (com a coluna
+   `marcos`), rode também `supabase-migration-historia.sql` — ele troca a
+   coluna `marcos` (jsonb) pela coluna `historia` (texto livre).
+5. Em **Project Settings > API**, copie:
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public key` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role key` → `SUPABASE_SERVICE_KEY` (nunca expor no client)
@@ -111,33 +114,39 @@ supabase-schema.sql              → schema completo pra colar no Supabase
   revela o resto da página com uma transição suave.
 - **Contador ao vivo** — dias/horas/minutos/segundos juntos, atualizado a
   cada segundo.
-- **Fotos em múltiplos pontos** — a primeira foto vira um fundo desfocado
-  decorativo, o slideshow principal roda em loop, e um mosaico menor usa as
-  fotos restantes.
+- **Fotos em múltiplos pontos** — até 15 fotos, usadas em vários lugares
+  conforme o tema: fundo desfocado, slideshow, mosaico, episódios/faixas/
+  destaques (nos temas Netflix/Spotify/Instagram).
+- **História livre** — o cliente escreve a história do casal com as
+  próprias palavras, num texto livre (até 2000 caracteres). Cada tema
+  divide esse texto em parágrafos e usa cada um como um "episódio"
+  (Netflix), "faixa" (Spotify) ou "destaque" (Instagram).
 - **Frase do casal + frase aleatória** — a frase que o cliente escreveu
   aparece junto com uma frase sorteada do banco de 100 frases românticas
-  (tabela `frases`), pra dar uma camada extra de romantismo sem esforço do
-  cliente.
-- **Cronologia** — até 8 marcos com data e título, definidos pelo cliente no
-  formulário, exibidos como linha do tempo vertical.
-- **Música embutida** — Spotify ou YouTube, com autoplay habilitado depois
-  do clique na tela de convite.
-- **9 temas exclusivos completos** (order bump) — cada um é um layout inteiro,
-  não só uma re-pintura de cores:
-  - **Netflix** — minissérie com episódios (cronologia), elenco, sinopse
-  - **Spotify** — playlist com faixas (cronologia), capa, mini player
-  - **Instagram** — perfil com destaques (cronologia), feed, posts
-  - **TikTok** — vídeo vertical em loop, comentários, curtidas
-  - **Mercado Livre** — página de produto, preço R$0, avaliações
-  - **Shopee** — produto com selo de desconto, estética laranja vibrante
-  - **Shein** — produto de moda, carrossel de fotos, selo de desconto
-  - **Facebook** — feed de timeline clássico, posts com fotos
-  - **YouTube** — canal com vídeos (cronologia como thumbnails)
-  
-  Cada tema é um componente próprio em `src/components/temas/`, recebendo os
-  dados reais do casal (nomes, fotos, frase, marcos, música) em vez de
-  conteúdo fixo. O roteamento entre eles fica em `ExperienciaCasal.tsx`.
+  (tabela `frases`).
+- **Música com autoplay robusto** — usa a YouTube IFrame API oficial
+  (chama `playVideo()` depois que o usuário já interagiu na tela de
+  convite, o que os navegadores respeitam) em vez de depender só do
+  parâmetro `autoplay=1` na URL do iframe, que muitos navegadores ignoram
+  silenciosamente. Para Spotify, usa o embed nativo deles com autoplay.
+- **Busca assistida de música** — o cliente digita o nome da música/artista
+  e clica em "Buscar no YouTube", que abre uma aba já com a pesquisa
+  pronta; ele copia o link de lá e cola de volta no campo.
+- **3 temas exclusivos completos** (order bump) — cada um é um layout
+  inteiro, com múltiplas seções/"dobras" de scroll e animações (corações
+  flutuantes na tela final):
+  - **Netflix** — minissérie com episódios (um por parágrafo da história),
+    sinopse, galeria de momentos, elenco
+  - **Spotify** — playlist com faixas (um por parágrafo da história),
+    capa, galeria "em alta", artistas
+  - **Instagram** — perfil com destaques (um por parágrafo da história),
+    feed, post fixado
+
+  Cada tema é um componente próprio em `src/components/temas/`, recebendo
+  os dados reais do casal. O roteamento entre eles fica em
+  `ExperienciaCasal.tsx`.
 - **Footer "feito com LoveAndLove 💛"** (presente em todos os temas)
+
 
 ## QR code com moldura
 

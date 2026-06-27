@@ -11,12 +11,7 @@ interface Bumps {
   para_sempre?: boolean;
 }
 
-interface MarcoForm {
-  data: string;
-  titulo: string;
-}
-
-const MAX_MARCOS = 8;
+const MAX_FOTOS = 15;
 
 /**
  * Gera uma imagem final em alta resolução (pronta para impressão,
@@ -36,25 +31,21 @@ async function gerarQrComMoldura(
   canvas.height = ALTURA;
   const ctx = canvas.getContext("2d")!;
 
-  // Fundo
   ctx.fillStyle = "#F7EDE2";
   ctx.fillRect(0, 0, LARGURA, ALTURA);
 
-  // Moldura dourada
   ctx.strokeStyle = "#C9A875";
   ctx.lineWidth = 6;
   ctx.strokeRect(40, 40, LARGURA - 80, ALTURA - 80);
   ctx.lineWidth = 1.5;
   ctx.strokeRect(70, 70, LARGURA - 140, ALTURA - 140);
 
-  // Nome do casal
   ctx.fillStyle = "#1A0E12";
   ctx.textAlign = "center";
   ctx.font = "italic 600 64px Georgia, serif";
   const nomeTexto = `${nome1 || ""} & ${nome2 || ""}`;
   ctx.fillText(nomeTexto, LARGURA / 2, 220, LARGURA - 200);
 
-  // QR code
   const qrDataUrl = await QRCode.toDataURL(url, {
     width: 760,
     margin: 1,
@@ -66,7 +57,6 @@ async function gerarQrComMoldura(
   const qrY = 300;
   ctx.drawImage(qrImg, qrX, qrY, qrTamanho, qrTamanho);
 
-  // Texto inferior
   ctx.font = "32px Georgia, serif";
   ctx.fillStyle = "#3D1F2B";
   ctx.fillText("aponte a câmera e reviva a história de vocês", LARGURA / 2, qrY + qrTamanho + 70, LARGURA - 160);
@@ -92,7 +82,7 @@ export default function FormularioCriacao({ token }: { token: string }) {
     token ? "verificando" : "invalido"
   );
   const [bumps, setBumps] = useState<Bumps>({});
-  const [marcos, setMarcos] = useState<MarcoForm[]>([]);
+  const [buscaMusica, setBuscaMusica] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [resultado, setResultado] = useState<{
@@ -117,6 +107,12 @@ export default function FormularioCriacao({ token }: { token: string }) {
       .catch(() => setEstadoToken("invalido"));
   }, [token]);
 
+  function abrirBuscaYoutube() {
+    if (!buscaMusica.trim()) return;
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(buscaMusica)}`;
+    window.open(url, "_blank");
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErro(null);
@@ -125,10 +121,6 @@ export default function FormularioCriacao({ token }: { token: string }) {
     const formData = new FormData(e.currentTarget);
     formData.set("token", token);
     formData.set("para_sempre", bumps.para_sempre ? "true" : "false");
-    formData.set(
-      "marcos",
-      JSON.stringify(marcos.filter((m) => m.data && m.titulo))
-    );
 
     try {
       const res = await fetch("/api/criar-pagina", {
@@ -158,25 +150,6 @@ export default function FormularioCriacao({ token }: { token: string }) {
     } finally {
       setEnviando(false);
     }
-  }
-
-  function adicionarMarco() {
-    if (marcos.length >= MAX_MARCOS) return;
-    setMarcos([...marcos, { data: "", titulo: "" }]);
-  }
-
-  function atualizarMarco(
-    index: number,
-    campo: "data" | "titulo",
-    valor: string
-  ) {
-    setMarcos(
-      marcos.map((m, i) => (i === index ? { ...m, [campo]: valor } : m))
-    );
-  }
-
-  function removerMarco(index: number) {
-    setMarcos(marcos.filter((_, i) => i !== index));
   }
 
   if (estadoToken === "verificando") {
@@ -278,7 +251,21 @@ export default function FormularioCriacao({ token }: { token: string }) {
         />
       </Campo>
 
-      <Campo label="Fotos de vocês" hint="até 6 fotos">
+      <Campo
+        label="Contem a história de vocês"
+        hint="do jeito que quiser — a gente cuida do resto"
+      >
+        <textarea
+          name="historia"
+          required
+          maxLength={2000}
+          rows={6}
+          className="input-base resize-none"
+          placeholder="Ex: A gente se conheceu numa festa em 2020, mas só começou a conversar de verdade meses depois. Em 2022 fomos morar juntos e desde então..."
+        />
+      </Campo>
+
+      <Campo label="Fotos de vocês" hint={`até ${MAX_FOTOS} fotos`}>
         <input
           type="file"
           name="fotos"
@@ -289,58 +276,32 @@ export default function FormularioCriacao({ token }: { token: string }) {
         />
       </Campo>
 
-      <Campo
-        label="Link de uma música"
-        hint="Spotify ou YouTube — cole o link da faixa"
-      >
+      <div className="space-y-2">
+        <span className="block text-cream/90 text-sm font-medium font-body">
+          Música de vocês
+        </span>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={buscaMusica}
+            onChange={(e) => setBuscaMusica(e.target.value)}
+            placeholder="Nome da música ou artista"
+            className="input-base flex-1"
+          />
+          <button
+            type="button"
+            onClick={abrirBuscaYoutube}
+            className="px-4 py-2 rounded-xl bg-cream/10 text-cream text-sm font-body whitespace-nowrap hover:bg-cream/20 transition"
+          >
+            Buscar no YouTube
+          </button>
+        </div>
         <input
           type="url"
           name="musica_url"
-          placeholder="https://open.spotify.com/track/..."
+          placeholder="Cole aqui o link que você encontrou (Spotify ou YouTube)"
           className="input-base"
         />
-      </Campo>
-
-      <div className="space-y-3">
-        <span className="block text-cream/90 text-sm font-medium font-body">
-          Marcos da história de vocês{" "}
-          <span className="text-cream/50">· opcional, até {MAX_MARCOS}</span>
-        </span>
-        {marcos.map((marco, i) => (
-          <div key={i} className="flex gap-2 items-start">
-            <input
-              type="date"
-              value={marco.data}
-              onChange={(e) => atualizarMarco(i, "data", e.target.value)}
-              className="input-base w-40 shrink-0"
-            />
-            <input
-              type="text"
-              value={marco.titulo}
-              onChange={(e) => atualizarMarco(i, "titulo", e.target.value)}
-              placeholder="Ex: Nosso primeiro encontro"
-              maxLength={60}
-              className="input-base flex-1"
-            />
-            <button
-              type="button"
-              onClick={() => removerMarco(i)}
-              className="text-cream/50 hover:text-rose px-2 py-2 font-body"
-              aria-label="Remover marco"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-        {marcos.length < MAX_MARCOS && (
-          <button
-            type="button"
-            onClick={adicionarMarco}
-            className="text-gold font-body text-sm underline"
-          >
-            + adicionar um marco
-          </button>
-        )}
       </div>
 
       {bumps.tema_exclusivo && (
@@ -350,12 +311,6 @@ export default function FormularioCriacao({ token }: { token: string }) {
             <option value="netflix">Netflix</option>
             <option value="spotify">Spotify</option>
             <option value="instagram">Instagram</option>
-            <option value="tiktok">TikTok</option>
-            <option value="mercadolivre">Mercado Livre</option>
-            <option value="shopee">Shopee</option>
-            <option value="shein">Shein</option>
-            <option value="facebook">Facebook</option>
-            <option value="youtube">YouTube</option>
           </select>
         </Campo>
       )}

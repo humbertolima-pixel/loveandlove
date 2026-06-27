@@ -1,46 +1,37 @@
 "use client";
 
-import type { Casal } from "@/lib/types";
+import type { Casal, Frase } from "@/lib/types";
+import PlayerMusica from "@/components/PlayerMusica";
 
 export default function TemaNetflix({
   casal,
+  fraseAleatoria,
   comecou,
   onComecar,
 }: {
   casal: Casal;
+  fraseAleatoria: Frase | null;
   comecou: boolean;
   onComecar: () => void;
 }) {
   const fotos = casal.fotos.length > 0 ? casal.fotos : [];
   const fotoHero = fotos[0];
 
-  const episodios = casal.marcos.length > 0
-    ? casal.marcos
-        .slice()
-        .sort((a, b) => a.data.localeCompare(b.data))
-        .map((m, i) => ({
-          numero: i + 1,
-          titulo: m.titulo,
-          duracao: i === casal.marcos.length - 1 ? "em cartaz" : `${5 + i * 8} min`,
-          desc: m.titulo,
-          img: fotos[i % Math.max(fotos.length, 1)] ?? fotoHero,
-        }))
-    : [
-        {
-          numero: 1,
-          titulo: "Como tudo começou",
-          duracao: "em cartaz",
-          desc: casal.frase,
-          img: fotoHero,
-        },
-      ];
+  // Divide a história livre em "episódios" — um por parágrafo/quebra de linha
+  const paragrafos = casal.historia
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
-  const momentos = fotos.slice(0, 6).map((f, i) => ({
-    legenda: i === 0 ? "esse momento, sabe qual" : "cena favorita",
-    img: f,
-  }));
+  const episodios = paragrafos.length > 0
+    ? paragrafos.map((texto, i) => ({
+        numero: i + 1,
+        texto,
+        img: fotos[i % Math.max(fotos.length, 1)] ?? fotoHero,
+      }))
+    : [{ numero: 1, texto: casal.frase, img: fotoHero }];
 
-  const embedMusica = obterEmbedMusica(casal.musica_url);
+  const momentos = fotos.slice(0, 12);
 
   return (
     <div className="netflix-root">
@@ -59,6 +50,16 @@ export default function TemaNetflix({
         }
         .netflix-root img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .nf-display { font-family: Georgia, serif; letter-spacing: 0.02em; }
+
+        @keyframes coracao-flutua {
+          0% { transform: translateY(0) scale(0.8); opacity: 0; }
+          15% { opacity: 1; }
+          100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+        }
+        .coracao {
+          position: absolute; font-size: 1.4rem; animation: coracao-flutua 3.5s ease-in infinite;
+          pointer-events: none;
+        }
 
         header {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
@@ -87,13 +88,13 @@ export default function TemaNetflix({
           font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
           border: 1px solid #555; padding: .25rem .6rem; border-radius: 3px; color: var(--cinza-texto);
         }
-        .hero h1 { font-size: clamp(2.4rem, 8vw, 5rem); line-height: .98; }
+        .hero h1 { font-size: clamp(2.4rem, 8vw, 5rem); line-height: .98; animation: fade-in-up 1s ease-out; }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .match { color: #46d369; font-weight: 700; font-size: .95rem; margin-top: .9rem; }
         .hero .desc { margin-top: .8rem; color: #dcdcdc; font-size: 1rem; line-height: 1.6; max-width: 52ch; }
         .cta-row { display: flex; gap: .8rem; margin-top: 1.6rem; flex-wrap: wrap; }
         .btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem; border-radius: 4px; font-weight: 700; font-size: .95rem; border: none; cursor: pointer; }
         .btn-play { background: var(--branco); color: #111; }
-        .btn-info { background: rgba(109,109,110,.5); color: var(--branco); }
         .btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         .row-section { padding: 3.2rem 0 1rem; }
@@ -103,50 +104,43 @@ export default function TemaNetflix({
         .row-scroll { display: flex; gap: .9rem; overflow-x: auto; padding: 0 4vw 1.2rem; scrollbar-width: none; }
         .row-scroll::-webkit-scrollbar { display: none; }
 
-        .ep-card { flex: 0 0 260px; background: var(--preto-2); border-radius: 6px; overflow: hidden; }
-        .ep-thumb { height: 145px; position: relative; }
+        .ep-card { flex: 0 0 280px; background: var(--preto-2); border-radius: 6px; overflow: hidden; transition: transform .3s; }
+        .ep-card:hover { transform: scale(1.03); }
+        .ep-thumb { height: 150px; position: relative; }
         .ep-num {
           position: absolute; top: .6rem; left: .7rem; font-weight: 700;
           font-size: 1rem; background: rgba(0,0,0,.55); padding: .1rem .55rem; border-radius: 3px;
         }
         .ep-body { padding: .9rem 1rem 1.1rem; }
-        .ep-title { font-weight: 700; font-size: .92rem; margin-bottom: .35rem; }
-        .ep-desc { font-size: .78rem; color: var(--cinza-texto); line-height: 1.5; }
-        .ep-dur { font-size: .68rem; color: #777; margin-top: .5rem; letter-spacing: .05em; }
+        .ep-text { font-size: .85rem; color: var(--cinza-texto); line-height: 1.55; max-height: 5.5em; overflow: hidden; }
 
-        .photo-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 6px; overflow: hidden; position: relative; }
-        .photo-cap {
-          position: absolute; left: 0; right: 0; bottom: 0; padding: .8rem .7rem;
-          background: linear-gradient(180deg, transparent, rgba(0,0,0,.9)); font-size: .82rem; font-weight: 600;
-        }
+        .photo-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 6px; overflow: hidden; position: relative; transition: transform .3s; }
+        .photo-card:hover { transform: scale(1.04); }
 
         .synopsis { max-width: 760px; margin: 0 auto; padding: 4rem 4vw; text-align: center; }
         .eyebrow { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--vermelho); font-weight: 700; }
         .synopsis h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin: .8rem 0 1.2rem; }
         .synopsis p { color: #dcdcdc; line-height: 1.75; font-size: 1rem; }
+        .synopsis .sub-frase { margin-top: 1rem; color: var(--vermelho); font-style: italic; font-size: .92rem; }
+
+        .cast-row { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding: 0 4vw; }
+        .cast-item { text-align: center; }
+        .cast-photo { width: 110px; height: 110px; border-radius: 50%; overflow: hidden; margin: 0 auto .7rem; border: 2px solid var(--vermelho); }
+        .cast-name { font-weight: 700; font-size: .9rem; }
+        .cast-role { font-size: .76rem; color: var(--cinza-texto); margin-top: .2rem; }
 
         .final-screen {
-          min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          text-align: center; padding: 6vh 6vw;
+          min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; padding: 6vh 6vw; position: relative; overflow: hidden;
           background: radial-gradient(circle at 50% 30%, rgba(229,9,20,.16), transparent 60%), var(--preto);
         }
         .next-ep { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cinza-texto); margin-bottom: 1.4rem; }
         .final-screen h2 { font-size: clamp(2.8rem, 14vw, 7rem); color: var(--vermelho); text-shadow: 0 0 70px rgba(229,9,20,.5); }
         .final-screen p { margin-top: 1.4rem; max-width: 36ch; color: #e6e6e6; font-size: 1rem; line-height: 1.7; }
 
-        footer { text-align: center; padding: 2.2rem 1rem 3rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
+        .music-section { padding: 3rem 4vw; text-align: center; }
 
-        .mini-player {
-          position: fixed; bottom: 18px; right: 18px; z-index: 300;
-          background: rgba(20,20,20,.92); border: 1px solid #333; border-radius: 10px;
-          padding: .7rem .9rem; display: flex; align-items: center; gap: .6rem;
-          font-size: .72rem; color: var(--cinza-texto);
-        }
-        .eq { display: flex; gap: 2px; align-items: flex-end; height: 14px; }
-        .eq i { width: 3px; background: var(--vermelho); display: block; animation: eq 1s infinite ease-in-out; }
-        .eq i:nth-child(2) { animation-delay: .2s; }
-        .eq i:nth-child(3) { animation-delay: .4s; }
-        @keyframes eq { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+        footer { text-align: center; padding: 2.2rem 1rem 3rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
       `}</style>
 
       <header>
@@ -179,11 +173,12 @@ export default function TemaNetflix({
         <span className="eyebrow">sinopse</span>
         <h2 className="nf-display">Quando dois se tornam um &ldquo;nós&rdquo;</h2>
         <p>{casal.frase}</p>
+        {fraseAleatoria && <p className="sub-frase">&ldquo;{fraseAleatoria.texto}&rdquo;</p>}
       </section>
 
       <section className="row-section" id="nf-temporada">
         <div className="row-head">
-          <h2>Temporada 1: Como começou</h2>
+          <h2>Temporada 1: a nossa história</h2>
           <span className="row-sub">{episodios.length} episódios</span>
         </div>
         <div className="row-scroll">
@@ -194,8 +189,7 @@ export default function TemaNetflix({
                 <span className="ep-num">EP {ep.numero}</span>
               </div>
               <div className="ep-body">
-                <div className="ep-title">{ep.titulo}</div>
-                <div className="ep-dur">{ep.duracao}</div>
+                <div className="ep-text">{ep.texto}</div>
               </div>
             </div>
           ))}
@@ -211,39 +205,49 @@ export default function TemaNetflix({
           <div className="row-scroll">
             {momentos.map((m, i) => (
               <div key={i} className="photo-card">
-                <img src={m.img} alt="" />
-                <div className="photo-cap">{m.legenda}</div>
+                <img src={m} alt="" />
               </div>
             ))}
           </div>
         </section>
       )}
 
+      <section className="row-section">
+        <div className="row-head">
+          <h2>Elenco principal</h2>
+          <span className="row-sub">os protagonistas</span>
+        </div>
+        <div className="cast-row">
+          <div className="cast-item">
+            {fotos[0] && <div className="cast-photo"><img src={fotos[0]} alt="" /></div>}
+            <div className="cast-name">{casal.nome1}</div>
+            <div className="cast-role">protagonista</div>
+          </div>
+          <div className="cast-item">
+            {(fotos[1] ?? fotos[0]) && <div className="cast-photo"><img src={fotos[1] ?? fotos[0]} alt="" /></div>}
+            <div className="cast-name">{casal.nome2}</div>
+            <div className="cast-role">protagonista</div>
+          </div>
+        </div>
+      </section>
+
+      {casal.musica_url && (
+        <section className="music-section">
+          <span className="eyebrow">trilha sonora</span>
+          <div style={{ marginTop: "1.2rem" }}>
+            <PlayerMusica url={casal.musica_url} autoplay={comecou} />
+          </div>
+        </section>
+      )}
+
       <section className="final-screen">
+        {comecou && <CoracoesFlutuantes />}
         <span className="next-ep">próximo episódio em: para sempre</span>
         <h2 className="nf-display">TE AMO</h2>
         <p>E essa é só a primeira temporada da nossa história.</p>
       </section>
 
-      <footer>Love &amp; Love — feito com carinho, só pra você</footer>
-
-      {comecou && embedMusica && (
-        <>
-          <div style={{ position: "fixed", width: 1, height: 1, bottom: 0, right: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
-            <iframe
-              src={embedMusica}
-              width="300"
-              height="80"
-              allow="autoplay; encrypted-media"
-              title="música"
-            />
-          </div>
-          <div className="mini-player">
-            <div className="eq"><i /><i /><i /></div>
-            <span>tocando agora</span>
-          </div>
-        </>
-      )}
+      <footer>Love &amp; Love — feito com carinho, só pra você 💛</footer>
 
       {!comecou && (
         <div
@@ -278,15 +282,19 @@ export default function TemaNetflix({
   );
 }
 
-function obterEmbedMusica(url: string | null): string | null {
-  if (!url) return null;
-  const spotify = url.match(/open\.spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-  if (spotify) {
-    return `https://open.spotify.com/embed/${spotify[1]}/${spotify[2]}?autoplay=1`;
-  }
-  const youtube = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-  if (youtube) {
-    return `https://www.youtube.com/embed/${youtube[1]}?autoplay=1&controls=0`;
-  }
-  return null;
+function CoracoesFlutuantes() {
+  const posicoes = [10, 25, 40, 55, 70, 85];
+  return (
+    <>
+      {posicoes.map((left, i) => (
+        <span
+          key={i}
+          className="coracao"
+          style={{ left: `${left}%`, bottom: "10%", animationDelay: `${i * 0.6}s` }}
+        >
+          💛
+        </span>
+      ))}
+    </>
+  );
 }

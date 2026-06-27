@@ -1,13 +1,16 @@
 "use client";
 
-import type { Casal } from "@/lib/types";
+import type { Casal, Frase } from "@/lib/types";
+import PlayerMusica from "@/components/PlayerMusica";
 
 export default function TemaInstagram({
   casal,
+  fraseAleatoria,
   comecou,
   onComecar,
 }: {
   casal: Casal;
+  fraseAleatoria: Frase | null;
   comecou: boolean;
   onComecar: () => void;
 }) {
@@ -15,18 +18,20 @@ export default function TemaInstagram({
   const avatar = fotos[0];
   const usuario = `${slugify(casal.nome1)}.e.${slugify(casal.nome2)}`;
 
-  const destaques = casal.marcos.length > 0
-    ? casal.marcos
-        .slice()
-        .sort((a, b) => a.data.localeCompare(b.data))
-        .map((m, i) => ({
-          rotulo: m.titulo,
-          img: fotos[i % Math.max(fotos.length, 1)] ?? avatar,
-        }))
-    : [{ rotulo: "hoje", img: avatar }];
+  const paragrafos = casal.historia
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
-  const momentos = fotos.slice(0, 6);
-  const embedMusica = obterEmbedMusica(casal.musica_url);
+  const destaques = paragrafos.length > 0
+    ? paragrafos.map((texto, i) => ({
+        rotulo: `parte ${i + 1}`,
+        texto,
+        img: fotos[i % Math.max(fotos.length, 1)] ?? avatar,
+      }))
+    : [{ rotulo: "hoje", texto: casal.frase, img: avatar }];
+
+  const momentos = fotos.slice(0, 12);
 
   return (
     <div className="ig-root">
@@ -43,9 +48,17 @@ export default function TemaInstagram({
           color: var(--preto);
           font-family: -apple-system, sans-serif;
           min-height: 100vh;
+          overflow-x: hidden;
         }
         .ig-root img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .ig-display { font-family: Georgia, serif; font-weight: 700; }
+
+        @keyframes coracao-flutua {
+          0% { transform: translateY(0) scale(0.8); opacity: 0; }
+          15% { opacity: 1; }
+          100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+        }
+        .coracao { position: absolute; font-size: 1.4rem; animation: coracao-flutua 3.5s ease-in infinite; pointer-events: none; }
 
         header {
           position: sticky; top: 0; z-index: 200;
@@ -57,66 +70,54 @@ export default function TemaInstagram({
         .logo span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
         .profile { max-width: 935px; margin: 0 auto; padding: 2.6rem 5vw 1.6rem; display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
-        .avatar-ring { width: 120px; height: 120px; border-radius: 50%; padding: 4px; background: var(--grad); flex: 0 0 120px; }
+        .avatar-ring { width: 130px; height: 130px; border-radius: 50%; padding: 4px; background: var(--grad); flex: 0 0 130px; animation: fade-in-up 1s ease-out; }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .avatar-ring-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 4px solid #fff; }
         .profile-info { flex: 1; min-width: 220px; }
-        .uname { font-weight: 700; font-size: 1.4rem; display: flex; align-items: center; gap: .5rem; }
+        .uname { font-weight: 700; font-size: 1.5rem; display: flex; align-items: center; gap: .5rem; }
         .uname svg { width: 18px; height: 18px; fill: var(--rosa); }
-        .profile-stats { display: flex; gap: 1.6rem; margin: .9rem 0; font-size: .88rem; }
-        .profile-stats b { display: block; font-size: .95rem; }
-        .profile-bio { font-size: .86rem; line-height: 1.55; }
+        .profile-stats { display: flex; gap: 1.7rem; margin: .9rem 0; font-size: .9rem; }
+        .profile-stats b { display: block; font-size: .98rem; }
+        .profile-bio { font-size: .88rem; line-height: 1.55; }
         .tag { color: var(--rosa); font-weight: 600; }
 
         .highlights { max-width: 935px; margin: 0 auto; padding: .8rem 5vw 2rem; display: flex; gap: 1.6rem; overflow-x: auto; }
-        .highlight { text-align: center; flex: 0 0 auto; }
-        .h-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; background: linear-gradient(135deg,#ccc,#999); margin: 0 auto .4rem; }
+        .highlight { text-align: center; flex: 0 0 130px; }
+        .h-ring { width: 70px; height: 70px; border-radius: 50%; padding: 2px; background: linear-gradient(135deg,#ccc,#999); margin: 0 auto .4rem; }
         .h-ring img { border-radius: 50%; border: 3px solid #fff; }
-        .highlight span { font-size: .68rem; max-width: 66px; display: block; word-break: break-word; }
+        .highlight span { font-size: .7rem; display: block; word-break: break-word; }
+        .highlight-text { font-size: .76rem; color: var(--cinza); margin-top: .3rem; line-height: 1.35; }
 
-        .feed-section { max-width: 935px; margin: 0 auto; padding: 1.8rem 5vw; }
+        .feed-section { max-width: 935px; margin: 0 auto; padding: 2rem 5vw; }
         .section-title { display: flex; align-items: center; gap: .5rem; margin-bottom: 1.1rem; }
-        .section-title h2 { font-size: 1.05rem; font-weight: 700; }
+        .section-title h2 { font-size: 1.1rem; font-weight: 700; }
 
-        .feed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; }
-        .feed-item { aspect-ratio: 1/1; overflow: hidden; }
+        .feed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+        .feed-item { aspect-ratio: 1/1; overflow: hidden; transition: transform .2s; }
+        .feed-item:hover { transform: scale(1.02); }
 
-        .post-card { border: 1px solid var(--borda); border-radius: 10px; overflow: hidden; margin-bottom: 1.4rem; background: #fff; }
-        .post-head { display: flex; align-items: center; gap: .55rem; padding: .65rem .85rem; }
-        .p-avatar { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; }
-        .p-name { font-weight: 600; font-size: .82rem; }
+        .post-card { border: 1px solid var(--borda); border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; background: #fff; }
+        .post-head { display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; }
+        .p-avatar { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; }
+        .p-name { font-weight: 600; font-size: .85rem; }
         .post-img { aspect-ratio: 4/3; }
-        .post-caption { padding: .3rem .85rem .9rem; font-size: .82rem; line-height: 1.5; }
+        .post-caption { padding: .3rem .9rem 1rem; font-size: .85rem; line-height: 1.5; }
         .post-caption b { margin-right: .4rem; }
 
-        .cast-grid { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; padding: .8rem 0 2.2rem; }
-        .cast-item { text-align: center; }
-        .cast-photo { width: 88px; height: 88px; border-radius: 50%; overflow: hidden; margin: 0 auto .55rem; border: 3px solid var(--rosa); }
-        .c-name { font-weight: 700; font-size: .85rem; }
-        .c-role { font-size: .72rem; color: var(--cinza); margin-top: .15rem; }
-
         .final-screen {
-          min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+          min-height: 90vh; position: relative; overflow: hidden;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
           background: var(--grad); color: #fff; padding: 6vh 6vw;
         }
         .final-screen .eyebrow { font-size: .78rem; letter-spacing: .15em; text-transform: uppercase; opacity: .9; margin-bottom: .7rem; }
-        .final-screen h2 { font-size: clamp(2.6rem, 14vw, 6rem); }
+        .final-screen h2 { font-size: clamp(2.6rem, 14vw, 6.5rem); }
         .final-screen p { margin-top: 1.2rem; max-width: 34ch; line-height: 1.7; }
-        .final-like { margin-top: 1.6rem; display: flex; align-items: center; gap: .5rem; font-size: .82rem; opacity: .95; }
-        .final-like svg { width: 22px; height: 22px; fill: #fff; }
+        .final-like { margin-top: 1.6rem; display: flex; align-items: center; gap: .5rem; font-size: .85rem; opacity: .95; }
+        .final-like svg { width: 24px; height: 24px; fill: #fff; }
 
-        footer { text-align: center; padding: 1.8rem 1rem 3rem; font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: #aaa; }
+        .music-section { max-width: 935px; margin: 0 auto; padding: 2rem 5vw; text-align: center; }
 
-        .mini-player {
-          position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 300;
-          background: #fff; border: 1px solid var(--borda); border-radius: 30px; padding: .5rem 1rem;
-          display: flex; align-items: center; gap: .6rem; font-size: .72rem; color: var(--cinza);
-          box-shadow: 0 4px 16px rgba(0,0,0,.08);
-        }
-        .eq { display: flex; gap: 2px; align-items: flex-end; height: 12px; }
-        .eq i { width: 3px; background: var(--rosa); display: block; animation: eq 1s infinite ease-in-out; }
-        .eq i:nth-child(2) { animation-delay: .2s; }
-        .eq i:nth-child(3) { animation-delay: .4s; }
-        @keyframes eq { 0%, 100% { height: 4px; } 50% { height: 12px; } }
+        footer { text-align: center; padding: 2rem 1rem 3rem; font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: #aaa; }
       `}</style>
 
       <header>
@@ -148,12 +149,14 @@ export default function TemaInstagram({
       </section>
 
       {destaques.length > 0 && (
-        <section className="feed-section">
+        <section className="feed-section" style={{ paddingTop: 0 }}>
+          <div className="section-title"><h2>Destaques: a nossa história</h2></div>
           <div className="highlights">
             {destaques.map((d, i) => (
               <div key={i} className="highlight">
                 <div className="h-ring">{d.img && <img src={d.img} alt="" />}</div>
                 <span>{d.rotulo}</span>
+                <div className="highlight-text">{d.texto}</div>
               </div>
             ))}
           </div>
@@ -172,18 +175,33 @@ export default function TemaInstagram({
       )}
 
       <section className="feed-section">
-        <div className="section-title"><h2>Post especial</h2></div>
+        <div className="section-title"><h2>Post fixado</h2></div>
         <div className="post-card">
           <div className="post-head">
             {avatar && <div className="p-avatar"><img src={avatar} alt="" /></div>}
             <div className="p-name">{usuario}</div>
           </div>
-          {fotos[1] && <div className="post-img"><img src={fotos[1]} alt="" /></div>}
+          {(fotos[1] ?? fotos[0]) && <div className="post-img"><img src={fotos[1] ?? fotos[0]} alt="" /></div>}
           <div className="post-caption"><b>{usuario}</b>{casal.frase}</div>
         </div>
+        {fraseAleatoria && (
+          <p style={{ textAlign: "center", color: "var(--rosa)", fontStyle: "italic", fontSize: ".88rem", marginTop: "1rem" }}>
+            &ldquo;{fraseAleatoria.texto}&rdquo;
+          </p>
+        )}
       </section>
 
+      {casal.musica_url && (
+        <section className="music-section">
+          <div className="section-title" style={{ justifyContent: "center" }}><h2>Som da história</h2></div>
+          <div style={{ marginTop: "1rem" }}>
+            <PlayerMusica url={casal.musica_url} autoplay={comecou} />
+          </div>
+        </section>
+      )}
+
       <section className="final-screen">
+        {comecou && <CoracoesFlutuantes />}
         <span className="eyebrow">história em destaque</span>
         <h2 className="ig-display">TE AMO</h2>
         <p>{casal.frase}</p>
@@ -193,19 +211,7 @@ export default function TemaInstagram({
         </div>
       </section>
 
-      <footer>Love &amp; Love — feito com carinho, só pra você</footer>
-
-      {comecou && embedMusica && (
-        <>
-          <div style={{ position: "fixed", width: 1, height: 1, bottom: 0, right: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
-            <iframe src={embedMusica} width="300" height="80" allow="autoplay; encrypted-media" title="música" />
-          </div>
-          <div className="mini-player">
-            <div className="eq"><i /><i /><i /></div>
-            <span>tocando agora</span>
-          </div>
-        </>
-      )}
+      <footer>Love &amp; Love — feito com carinho, só pra você 💛</footer>
 
       {!comecou && (
         <div
@@ -253,15 +259,19 @@ function slugify(nome: string): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-function obterEmbedMusica(url: string | null): string | null {
-  if (!url) return null;
-  const spotify = url.match(/open\.spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-  if (spotify) {
-    return `https://open.spotify.com/embed/${spotify[1]}/${spotify[2]}?autoplay=1`;
-  }
-  const youtube = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-  if (youtube) {
-    return `https://www.youtube.com/embed/${youtube[1]}?autoplay=1&controls=0`;
-  }
-  return null;
+function CoracoesFlutuantes() {
+  const posicoes = [10, 25, 40, 55, 70, 85];
+  return (
+    <>
+      {posicoes.map((left, i) => (
+        <span
+          key={i}
+          className="coracao"
+          style={{ left: `${left}%`, bottom: "10%", animationDelay: `${i * 0.6}s` }}
+        >
+          💖
+        </span>
+      ))}
+    </>
+  );
 }
