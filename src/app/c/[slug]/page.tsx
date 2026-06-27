@@ -2,10 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import type { Casal } from "@/lib/types";
-import ContadorVivo from "@/components/ContadorVivo";
-import SlideshowFotos from "@/components/SlideshowFotos";
-import PlayerMusica from "@/components/PlayerMusica";
+import type { Casal, Frase } from "@/lib/types";
+import ExperienciaCasal from "@/components/ExperienciaCasal";
 
 const UM_ANO_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -27,6 +25,28 @@ async function buscarCasal(slug: string): Promise<Casal | null> {
 
   if (error || !data) return null;
   return data as Casal;
+}
+
+async function buscarFraseAleatoria(): Promise<Frase | null> {
+  // Conta quantas frases existem e sorteia um índice aleatório.
+  // Evita depender de funções específicas do Postgres para portabilidade.
+  const { count } = await supabaseAdmin
+    .from("frases")
+    .select("*", { count: "exact", head: true });
+
+  if (!count || count === 0) return null;
+
+  const indiceAleatorio = Math.floor(Math.random() * count);
+
+  const { data, error } = await supabaseAdmin
+    .from("frases")
+    .select("*")
+    .range(indiceAleatorio, indiceAleatorio)
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  return data as Frase;
 }
 
 export async function generateMetadata({
@@ -55,41 +75,9 @@ export default async function PaginaCasal({ params }: PageProps) {
     return <PaginaExpirada />;
   }
 
-  const temaClasse =
-    casal.tema === "netflix"
-      ? "tema-netflix"
-      : casal.tema === "polaroid-vintage"
-      ? "tema-polaroid-vintage"
-      : "";
+  const fraseAleatoria = await buscarFraseAleatoria();
 
-  return (
-    <main
-      className={`min-h-screen bg-wine flex flex-col items-center justify-center gap-12 px-6 py-20 ${temaClasse}`}
-    >
-      <ContadorVivo dataInicio={casal.data_inicio} />
-
-      <div className="fade-up text-center">
-        <h1 className="font-display text-3xl md:text-5xl text-cream italic">
-          {casal.nome1} <span className="text-gold">&</span> {casal.nome2}
-        </h1>
-      </div>
-
-      {casal.fotos.length > 0 && <SlideshowFotos fotos={casal.fotos} />}
-
-      <p className="font-display text-xl md:text-2xl text-cream/90 text-center max-w-md italic leading-relaxed fade-up">
-        &ldquo;{casal.frase}&rdquo;
-      </p>
-
-      {casal.musica_url && <PlayerMusica url={casal.musica_url} />}
-
-      <footer className="font-body text-xs text-cream/40 mt-8">
-        feito com{" "}
-        <Link href="/" className="underline">
-          LoveAndLove
-        </Link>
-      </footer>
-    </main>
-  );
+  return <ExperienciaCasal casal={casal} fraseAleatoria={fraseAleatoria} />;
 }
 
 function PaginaExpirada() {

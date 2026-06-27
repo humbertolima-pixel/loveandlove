@@ -29,6 +29,28 @@ export async function POST(req: NextRequest) {
     const tema = ((formData.get("tema") as string) || "padrao") as Tema;
     const paraSempre = formData.get("para_sempre") === "true";
 
+    let marcos: { data: string; titulo: string }[] = [];
+    try {
+      const marcosRaw = formData.get("marcos") as string;
+      if (marcosRaw) {
+        const parsed = JSON.parse(marcosRaw);
+        if (Array.isArray(parsed)) {
+          marcos = parsed
+            .filter(
+              (m) =>
+                m && typeof m.data === "string" && typeof m.titulo === "string"
+            )
+            .slice(0, 8)
+            .map((m) => ({
+              data: m.data,
+              titulo: m.titulo.slice(0, 60),
+            }));
+        }
+      }
+    } catch {
+      marcos = [];
+    }
+
     if (!token || !nome1 || !nome2 || !dataInicio || !frase) {
       return NextResponse.json(
         { error: "Preencha todos os campos obrigatórios" },
@@ -95,6 +117,7 @@ export async function POST(req: NextRequest) {
       musica_url: musicaUrl,
       tema,
       expira: !paraSempre,
+      marcos,
     });
 
     if (casalError) {

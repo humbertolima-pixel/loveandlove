@@ -111,3 +111,15 @@ body {
 .tema-polaroid-vintage .text-gold {
   color: #d9a86c !important;
 }
+
+/* Spotify: fundo preto profundo, acento verde Spotify no lugar do dourado */
+.tema-spotify {
+  background: #121212;
+}
+.tema-spotify .text-gold,
+.tema-spotify .bg-gold {
+  color: #1ed760 !important;
+}
+.tema-spotify .bg-gold {
+  background-color: #1ed760 !important;
+}

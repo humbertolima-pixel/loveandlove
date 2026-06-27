@@ -4,17 +4,23 @@ function extrairSpotifyEmbed(url: string): string | null {
   return `https://open.spotify.com/embed/${match[1]}/${match[2]}?theme=0`;
 }
 
-function extrairYoutubeEmbed(url: string): string | null {
+function extrairYoutubeEmbed(url: string, autoplay: boolean): string | null {
   const match = url.match(
     /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/
   );
   if (!match) return null;
-  return `https://www.youtube.com/embed/${match[1]}?autoplay=0`;
+  return `https://www.youtube.com/embed/${match[1]}?autoplay=${autoplay ? 1 : 0}&playsinline=1`;
 }
 
-export default function PlayerMusica({ url }: { url: string }) {
+export default function PlayerMusica({
+  url,
+  autoplay = false,
+}: {
+  url: string;
+  autoplay?: boolean;
+}) {
   const spotifyEmbed = extrairSpotifyEmbed(url);
-  const youtubeEmbed = extrairYoutubeEmbed(url);
+  const youtubeEmbed = extrairYoutubeEmbed(url, autoplay);
 
   if (spotifyEmbed) {
     return (
@@ -27,6 +33,11 @@ export default function PlayerMusica({ url }: { url: string }) {
           allow="autoplay; encrypted-media"
           loading="lazy"
         />
+        {!autoplay && (
+          <p className="text-center text-cream/40 font-body text-xs mt-2">
+            toque em play para ouvir
+          </p>
+        )}
       </div>
     );
   }

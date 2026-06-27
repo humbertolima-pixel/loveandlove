@@ -29,10 +29,24 @@ create table if not exists casais (
   musica_url text,
   tema text not null default 'padrao',
   expira boolean not null default true,
+  marcos jsonb not null default '[]'::jsonb,
   criado_em timestamptz not null default now()
 );
 
 create index if not exists idx_casais_slug on casais (slug);
+
+-- Tabela: frases (banco de frases românticas, sorteadas aleatoriamente
+-- na página pública para complementar a frase escrita pelo cliente)
+create table if not exists frases (
+  id uuid primary key default gen_random_uuid(),
+  texto text not null
+);
+
+-- Leitura pública liberada (qualquer um pode ler para sortear na página)
+alter table frases enable row level security;
+create policy "Leitura pública de frases"
+  on frases for select
+  using (true);
 
 -- ============================================================
 -- Row Level Security

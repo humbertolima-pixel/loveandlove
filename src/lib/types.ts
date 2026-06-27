@@ -1,8 +1,18 @@
-export type Tema = "padrao" | "netflix" | "polaroid-vintage";
+export type Tema = "padrao" | "netflix" | "polaroid-vintage" | "spotify";
 
 export interface Bumps {
   tema_exclusivo?: boolean;
   para_sempre?: boolean;
+}
+
+export interface Marco {
+  data: string; // ISO date
+  titulo: string;
+}
+
+export interface Frase {
+  id: string;
+  texto: string;
 }
 
 export interface Pedido {
@@ -27,5 +37,6 @@ export interface Casal {
   musica_url: string | null;
   tema: Tema;
   expira: boolean;
+  marcos: Marco[];
   criado_em: string;
 }

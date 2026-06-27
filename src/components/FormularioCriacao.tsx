@@ -11,11 +11,88 @@ interface Bumps {
   para_sempre?: boolean;
 }
 
+interface MarcoForm {
+  data: string;
+  titulo: string;
+}
+
+const MAX_MARCOS = 8;
+
+/**
+ * Gera uma imagem final em alta resolução (pronta para impressão,
+ * ~10x12.5cm a 300dpi) com o QR code centralizado dentro de uma
+ * moldura, com o nome do casal acima dele.
+ */
+async function gerarQrComMoldura(
+  url: string,
+  nome1: string,
+  nome2: string
+): Promise<string> {
+  const LARGURA = 1200;
+  const ALTURA = 1500;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = LARGURA;
+  canvas.height = ALTURA;
+  const ctx = canvas.getContext("2d")!;
+
+  // Fundo
+  ctx.fillStyle = "#F7EDE2";
+  ctx.fillRect(0, 0, LARGURA, ALTURA);
+
+  // Moldura dourada
+  ctx.strokeStyle = "#C9A875";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(40, 40, LARGURA - 80, ALTURA - 80);
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(70, 70, LARGURA - 140, ALTURA - 140);
+
+  // Nome do casal
+  ctx.fillStyle = "#1A0E12";
+  ctx.textAlign = "center";
+  ctx.font = "italic 600 64px Georgia, serif";
+  const nomeTexto = `${nome1 || ""} & ${nome2 || ""}`;
+  ctx.fillText(nomeTexto, LARGURA / 2, 220, LARGURA - 200);
+
+  // QR code
+  const qrDataUrl = await QRCode.toDataURL(url, {
+    width: 760,
+    margin: 1,
+    color: { dark: "#1A0E12", light: "#F7EDE2" },
+  });
+  const qrImg = await carregarImagem(qrDataUrl);
+  const qrTamanho = 760;
+  const qrX = (LARGURA - qrTamanho) / 2;
+  const qrY = 300;
+  ctx.drawImage(qrImg, qrX, qrY, qrTamanho, qrTamanho);
+
+  // Texto inferior
+  ctx.font = "32px Georgia, serif";
+  ctx.fillStyle = "#3D1F2B";
+  ctx.fillText("aponte a câmera e reviva a história de vocês", LARGURA / 2, qrY + qrTamanho + 70, LARGURA - 160);
+
+  ctx.font = "italic 28px Georgia, serif";
+  ctx.fillStyle = "#C9A875";
+  ctx.fillText("LoveAndLove", LARGURA / 2, ALTURA - 80);
+
+  return canvas.toDataURL("image/png");
+}
+
+function carregarImagem(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 export default function FormularioCriacao({ token }: { token: string }) {
   const [estadoToken, setEstadoToken] = useState<EstadoToken>(() =>
     token ? "verificando" : "invalido"
   );
   const [bumps, setBumps] = useState<Bumps>({});
+  const [marcos, setMarcos] = useState<MarcoForm[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [resultado, setResultado] = useState<{
@@ -48,6 +125,10 @@ export default function FormularioCriacao({ token }: { token: string }) {
     const formData = new FormData(e.currentTarget);
     formData.set("token", token);
     formData.set("para_sempre", bumps.para_sempre ? "true" : "false");
+    formData.set(
+      "marcos",
+      JSON.stringify(marcos.filter((m) => m.data && m.titulo))
+    );
 
     try {
       const res = await fetch("/api/criar-pagina", {
@@ -65,11 +146,11 @@ export default function FormularioCriacao({ token }: { token: string }) {
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
       const urlPagina = `${siteUrl}/c/${data.slug}`;
-      const qrCodeDataUrl = await QRCode.toDataURL(urlPagina, {
-        width: 480,
-        margin: 2,
-        color: { dark: "#1A0E12", light: "#F7EDE2" },
-      });
+      const qrCodeDataUrl = await gerarQrComMoldura(
+        urlPagina,
+        formData.get("nome1") as string,
+        formData.get("nome2") as string
+      );
 
       setResultado({ slug: data.slug, qrCodeDataUrl });
     } catch {
@@ -77,6 +158,25 @@ export default function FormularioCriacao({ token }: { token: string }) {
     } finally {
       setEnviando(false);
     }
+  }
+
+  function adicionarMarco() {
+    if (marcos.length >= MAX_MARCOS) return;
+    setMarcos([...marcos, { data: "", titulo: "" }]);
+  }
+
+  function atualizarMarco(
+    index: number,
+    campo: "data" | "titulo",
+    valor: string
+  ) {
+    setMarcos(
+      marcos.map((m, i) => (i === index ? { ...m, [campo]: valor } : m))
+    );
+  }
+
+  function removerMarco(index: number) {
+    setMarcos(marcos.filter((_, i) => i !== index));
   }
 
   if (estadoToken === "verificando") {
@@ -125,7 +225,7 @@ export default function FormularioCriacao({ token }: { token: string }) {
         <img
           src={resultado.qrCodeDataUrl}
           alt="QR code da sua página"
-          className="mx-auto rounded-2xl mb-4 w-64 h-64"
+          className="mx-auto rounded-2xl mb-4 w-72 shadow-2xl"
         />
         <a
           href={resultado.qrCodeDataUrl}
@@ -201,12 +301,55 @@ export default function FormularioCriacao({ token }: { token: string }) {
         />
       </Campo>
 
+      <div className="space-y-3">
+        <span className="block text-cream/90 text-sm font-medium font-body">
+          Marcos da história de vocês{" "}
+          <span className="text-cream/50">· opcional, até {MAX_MARCOS}</span>
+        </span>
+        {marcos.map((marco, i) => (
+          <div key={i} className="flex gap-2 items-start">
+            <input
+              type="date"
+              value={marco.data}
+              onChange={(e) => atualizarMarco(i, "data", e.target.value)}
+              className="input-base w-40 shrink-0"
+            />
+            <input
+              type="text"
+              value={marco.titulo}
+              onChange={(e) => atualizarMarco(i, "titulo", e.target.value)}
+              placeholder="Ex: Nosso primeiro encontro"
+              maxLength={60}
+              className="input-base flex-1"
+            />
+            <button
+              type="button"
+              onClick={() => removerMarco(i)}
+              className="text-cream/50 hover:text-rose px-2 py-2 font-body"
+              aria-label="Remover marco"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        {marcos.length < MAX_MARCOS && (
+          <button
+            type="button"
+            onClick={adicionarMarco}
+            className="text-gold font-body text-sm underline"
+          >
+            + adicionar um marco
+          </button>
+        )}
+      </div>
+
       {bumps.tema_exclusivo && (
         <Campo label="Tema da página">
           <select name="tema" className="input-base">
             <option value="padrao">Padrão</option>
             <option value="netflix">Estilo Netflix</option>
             <option value="polaroid-vintage">Polaroid vintage</option>
+            <option value="spotify">Estilo Spotify</option>
           </select>
         </Campo>
       )}
