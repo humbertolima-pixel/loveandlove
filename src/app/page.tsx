@@ -1,11 +1,21 @@
 export default function Home() {
   return (
     <main className="min-h-screen bg-wine">
+      {/* Banner de topo */}
+      <div className="w-full">
+        <picture>
+          <source srcSet="/banner-hero.webp" type="image/webp" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/banner-hero-fallback.jpg"
+            alt="LoveAndLove — casal feliz com fotos polaroid"
+            className="w-full h-auto"
+          />
+        </picture>
+      </div>
+
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 gap-8">
-        <p className="fade-up font-body text-xs uppercase tracking-[0.25em] text-rose/80">
-          LoveAndLove
-        </p>
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-16 pb-20 gap-8">
         <h1 className="fade-up font-display text-4xl md:text-6xl text-cream leading-tight max-w-2xl italic">
           A história de vocês, cabe num QR code.
         </h1>
@@ -69,37 +79,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Planos */}
+      {/* Oferta */}
       <section id="planos" className="px-6 py-24">
         <h2 className="font-display text-2xl md:text-3xl text-cream text-center mb-3 italic">
-          Escolha o plano
+          Tudo isso por um preço só
         </h2>
         <p className="font-body text-cream/60 text-center mb-12">
-          Pagamento único. Sem mensalidade.
+          Pagamento único. Sem mensalidade. Pra sempre.
         </p>
-        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          <Plano
-            nome="Essencial"
-            preco="R$ 24,90"
-            itens={[
-              "Página personalizada",
-              "Contador ao vivo",
-              "Até 6 fotos",
-              "Música embutida",
-              "QR code para download",
-              "Válida por 1 ano",
-            ]}
-          />
-          <Plano
-            destaque
-            nome="Para sempre"
-            preco="R$ 34,80"
-            itens={[
-              "Tudo do plano Essencial",
+        <div className="max-w-md mx-auto rounded-2xl bg-gold/10 border-2 border-gold p-8 flex flex-col gap-6">
+          <div className="text-center">
+            <p className="font-display text-4xl md:text-5xl text-gold">
+              R$ 34,99
+            </p>
+            <p className="font-body text-cream/60 text-sm mt-1">
+              pagamento único, sem assinatura
+            </p>
+          </div>
+          <ul className="font-body text-cream/85 text-sm space-y-2.5">
+            {[
+              "Página exclusiva, só de vocês",
+              "Vídeo ou música tocando ao abrir a página",
+              "Até 15 fotos",
+              "Contador ao vivo de dias juntos",
+              "Sua história em destaque",
+              "Declaração de amor incluída",
+              "QR code pronto pra imprimir, com moldura",
+              "Tema exclusivo: Netflix ou Spotify",
               "Página nunca expira",
-              "Tema exclusivo (Netflix ou Polaroid vintage)",
-            ]}
-          />
+            ].map((item) => (
+              <li key={item} className="flex gap-2">
+                <span className="text-gold">✓</span> {item}
+              </li>
+            ))}
+          </ul>
+          <a
+            href="https://pay.cakto.com.br/3ezuy3k_945139"
+            className="text-center font-body font-semibold py-3.5 rounded-full bg-gold text-wine-black hover:opacity-90 transition"
+          >
+            Criar nossa página agora
+          </a>
         </div>
       </section>
 
@@ -115,50 +134,6 @@ function Passo({ titulo, texto }: { titulo: string; texto: string }) {
     <div className="text-center fade-up">
       <p className="font-display text-xl text-gold mb-2">{titulo}</p>
       <p className="font-body text-cream/70 text-sm leading-relaxed">{texto}</p>
-    </div>
-  );
-}
-
-function Plano({
-  nome,
-  preco,
-  itens,
-  destaque = false,
-}: {
-  nome: string;
-  preco: string;
-  itens: string[];
-  destaque?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl p-8 flex flex-col gap-5 ${
-        destaque
-          ? "bg-gold/10 border-2 border-gold"
-          : "bg-cream/5 border border-cream/15"
-      }`}
-    >
-      <div>
-        <p className="font-display text-xl text-cream italic">{nome}</p>
-        <p className="font-display text-3xl text-gold mt-1">{preco}</p>
-      </div>
-      <ul className="font-body text-cream/75 text-sm space-y-2 flex-1">
-        {itens.map((item) => (
-          <li key={item} className="flex gap-2">
-            <span className="text-gold">✓</span> {item}
-          </li>
-        ))}
-      </ul>
-      <a
-        href="https://pay.cakto.com.br/3ezuy3k_945139"
-        className={`text-center font-body font-semibold py-3 rounded-full transition ${
-          destaque
-            ? "bg-gold text-wine-black hover:opacity-90"
-            : "bg-cream/10 text-cream hover:bg-cream/20"
-        }`}
-      >
-        Escolher este plano
-      </a>
     </div>
   );
 }
