@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 declare global {
   interface Window {
     YT: {
       Player: new (
-        elementId: string,
+        elementOrId: string | HTMLElement,
         config: {
           videoId: string;
           playerVars?: Record<string, number>;
@@ -36,7 +36,8 @@ export function detectarMidia(link: string | null): MidiaDetectada | null {
   if (link.includes("youtube.com") || link.includes("youtu.be")) {
     const m1 = link.match(/[?&]v=([^&]+)/);
     const m2 = link.match(/youtu\.be\/([^?&]+)/);
-    const id = m1 ? m1[1] : m2 ? m2[1] : null;
+    const m3 = link.match(/youtube\.com\/shorts\/([^?&]+)/);
+    const id = m1 ? m1[1] : m2 ? m2[1] : m3 ? m3[1] : null;
     return id ? { tipo: "youtube", id } : null;
   }
 
@@ -75,7 +76,10 @@ function carregarYoutubeApi(callback: () => void) {
  * respeitado pelos navegadores, diferente de só colocar autoplay=1 na
  * URL de um iframe escondido (que é silenciosamente bloqueado).
  *
- * `iniciar` deve ser chamado de dentro de um onClick do usuário.
+ * Importante: o player só é criado depois que o elemento alvo já
+ * está garantidamente no DOM (via callback ref), nunca antes — criar
+ * o YT.Player apontando para um id que ainda não existe falha em
+ * silêncio, sem erro no console, o que parece "não fazer nada".
  */
 export default function PlayerMusica({
   midia,
@@ -86,29 +90,31 @@ export default function PlayerMusica({
   ativo: boolean;
   tamanho?: "pequeno" | "medio";
 }) {
-  const [containerId] = useState(
-    () => `yt-player-${Math.random().toString(36).slice(2)}`
-  );
   const playerCriado = useRef(false);
+  const [erro, setErro] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!ativo || !midia || midia.tipo !== "youtube" || playerCriado.current) {
+  function montarPlayerYoutube(el: HTMLDivElement | null) {
+    if (!el || !midia || midia.tipo !== "youtube" || playerCriado.current) {
       return;
     }
     playerCriado.current = true;
 
     carregarYoutubeApi(() => {
-      new window.YT.Player(containerId, {
-        videoId: midia.id,
-        playerVars: { autoplay: 1, playsinline: 1 },
-        events: {
-          onReady: (event) => {
-            event.target.playVideo();
+      try {
+        new window.YT.Player(el, {
+          videoId: midia.id,
+          playerVars: { autoplay: 1, playsinline: 1 },
+          events: {
+            onReady: (event) => {
+              event.target.playVideo();
+            },
           },
-        },
-      });
+        });
+      } catch {
+        setErro("Não foi possível carregar o vídeo.");
+      }
     });
-  }, [ativo, midia, containerId]);
+  }
 
   if (!ativo || !midia) return null;
 
@@ -125,9 +131,14 @@ export default function PlayerMusica({
           height: dimensoes.height,
           borderRadius: 10,
           overflow: "hidden",
+          background: "rgba(0,0,0,0.3)",
         }}
       >
-        <div id={containerId} style={{ width: "100%", height: "100%" }} />
+        {erro ? (
+          <p style={{ color: "#fff", fontSize: 11, padding: 8 }}>{erro}</p>
+        ) : (
+          <div ref={montarPlayerYoutube} style={{ width: "100%", height: "100%" }} />
+        )}
       </div>
     );
   }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import QRCode from "qrcode";
+import { detectarMidia } from "@/components/PlayerMusica";
 
 type EstadoToken = "verificando" | "valido" | "invalido" | "ja_usado";
 
@@ -83,6 +84,7 @@ export default function FormularioCriacao({ token }: { token: string }) {
   );
   const [bumps, setBumps] = useState<Bumps>({});
   const [buscaMusica, setBuscaMusica] = useState("");
+  const [musicaUrl, setMusicaUrl] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [resultado, setResultado] = useState<{
@@ -113,6 +115,12 @@ export default function FormularioCriacao({ token }: { token: string }) {
     window.open(url, "_blank");
   }
 
+  const musicaUrlLimpa = musicaUrl.trim();
+  const avisoMusica =
+    musicaUrlLimpa && !detectarMidia(musicaUrlLimpa)
+      ? "Esse link não parece ser do YouTube ou Spotify. Confira se copiou certinho."
+      : null;
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErro(null);
@@ -121,6 +129,7 @@ export default function FormularioCriacao({ token }: { token: string }) {
     const formData = new FormData(e.currentTarget);
     formData.set("token", token);
     formData.set("para_sempre", bumps.para_sempre ? "true" : "false");
+    formData.set("musica_url", musicaUrlLimpa);
 
     try {
       const res = await fetch("/api/criar-pagina", {
@@ -319,22 +328,17 @@ export default function FormularioCriacao({ token }: { token: string }) {
           </button>
         </div>
         <input
-          type="url"
+          type="text"
           name="musica_url"
+          value={musicaUrl}
+          onChange={(e) => setMusicaUrl(e.target.value)}
           placeholder="Cole aqui o link que você encontrou (Spotify ou YouTube)"
           className="input-base"
         />
+        {avisoMusica && (
+          <p className="text-rose font-body text-xs">{avisoMusica}</p>
+        )}
       </div>
-
-      {bumps.tema_exclusivo && (
-        <Campo label="Tema da página">
-          <select name="tema" className="input-base">
-            <option value="padrao">Padrão</option>
-            <option value="netflix">Netflix</option>
-            <option value="spotify">Spotify</option>
-          </select>
-        </Campo>
-      )}
 
       {bumps.para_sempre && (
         <p className="text-gold font-body text-sm text-center">

@@ -31,7 +31,7 @@ create table if not exists casais (
   sonho_juntos text not null default '',
   fotos jsonb not null default '[]'::jsonb,
   musica_url text,
-  tema text not null default 'padrao',
+  tema text not null default 'romantico',
   expira boolean not null default true,
   criado_em timestamptz not null default now()
 );

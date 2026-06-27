@@ -1,4 +1,4 @@
-export type Tema = "padrao" | "netflix" | "spotify";
+export type Tema = "romantico";
 
 export interface Bumps {
   tema_exclusivo?: boolean;

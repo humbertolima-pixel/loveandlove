@@ -1,9 +1,10 @@
 # LoveAndLove
 
 Plataforma de presente digital para casais: a pessoa compra, preenche um
-formulário (nomes, data, fotos, frase, perguntas sobre a relação, música), e
-o sistema gera automaticamente uma página única — um "site" completo da
-história do casal — com QR code para baixar.
+formulário (nomes, data, fotos, frase, respostas sobre a relação, música), e
+o sistema gera automaticamente uma página única no formato de **Stories**
+(como Instagram/TikTok) contando a história do casal, com QR code pra
+imprimir.
 
 ## Stack
 
@@ -12,7 +13,7 @@ história do casal — com QR code para baixar.
 - Cakto (checkout + webhook de confirmação)
 - Resend (envio do email com o link de criação)
 - `qrcode` (geração do QR code)
-- YouTube IFrame API (player de música robusto)
+- YouTube IFrame API (player de música robusto, tocando durante toda a navegação)
 
 ## Setup
 
@@ -31,9 +32,10 @@ npm install
 3. Cole também `supabase-seed-frases.sql` e `supabase-seed-declaracoes.sql`
    (cada um numa query separada) — populam 100 frases e 30 declarações de
    amor, sorteadas aleatoriamente na página pública de cada casal.
-4. **Se você já tinha o banco criado de uma versão anterior**, rode
-   `supabase-migration-v3.sql` — ele troca a coluna `historia` pelos 4 campos
-   estruturados novos e cria a tabela `declaracoes`.
+4. **Se você já tinha o banco criado de uma versão anterior**, rode, na
+   ordem: `supabase-migration-v3.sql` (troca `historia` pelos 4 campos
+   estruturados) e `supabase-migration-v4.sql` (atualiza registros antigos
+   para o tema único atual).
 5. Em **Project Settings > API**, copie:
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public key` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -55,8 +57,8 @@ npm install
 3. Quando fizer o primeiro teste de compra real, confira o payload exato
    que a Cakto envia e ajuste os campos lidos em
    `src/app/api/webhook/cakto/route.ts` se precisar.
-4. Troque a URL `https://pay.cakto.com.br/SEU-CHECKOUT-AQUI` em
-   `src/app/page.tsx` pelo link real do seu checkout.
+4. Troque a URL do checkout em `src/app/page.tsx` pelo link real do seu
+   checkout.
 
 ### 5. Variáveis de ambiente
 
@@ -86,22 +88,17 @@ src/
   app/
     page.tsx                    → landing page de vendas
     criar/page.tsx               → formulário de criação (valida ?token=)
-    c/[slug]/page.tsx            → página pública do casal
+    c/[slug]/page.tsx            → página pública do casal (Stories)
     api/
       webhook/cakto/route.ts     → recebe confirmação de pagamento da Cakto
       validar-token/route.ts     → valida se o token existe e não foi usado
       criar-pagina/route.ts      → processa o formulário, gera slug, salva
   components/
     FormularioCriacao.tsx        → formulário client-side + geração do QR
-    TelaAbertura.tsx              → vídeo/música em destaque + "role pra baixo"
-    ContadorVivo.tsx              → contador ao vivo
-    SlideshowFotos.tsx            → slideshow estilo polaroid
-    MosaicoFotos.tsx              → grade de fotos extra, configurável
-    SecaoPergunta.tsx             → bloco de pergunta+resposta+foto (tema Padrão)
+    PlayerMusica.tsx              → player de música robusto (YouTube/Spotify)
+    ExperienciaCasal.tsx          → ponto de entrada, delega para o tema
     temas/
-      TemaPadrao.tsx              → layout simples, com as 4 seções de pergunta
-      TemaNetflix.tsx             → minissérie com "episódios"
-      TemaSpotify.tsx             → playlist com "faixas"
+      TemaRomantico.tsx           → experiência completa em formato Stories
   lib/
     supabase-admin.ts            → cliente Supabase (server, service key)
     supabase-browser.ts          → cliente Supabase (client, anon key)
@@ -109,30 +106,45 @@ src/
 supabase-schema.sql              → schema completo pra colar no Supabase
 supabase-seed-frases.sql         → 100 frases românticas
 supabase-seed-declaracoes.sql    → 30 declarações de amor
-supabase-migration-v3.sql        → migration para quem tinha o banco antigo
+supabase-migration-v3.sql        → migration: historia → 4 campos
+supabase-migration-v4.sql        → migration: temas antigos → tema único
 ```
 
-## Funcionalidades da página pública
+## A experiência em formato Stories
 
-- **Tela de abertura com vídeo/música em destaque** — se o cliente colocar
-  um link do YouTube, o vídeo toca de verdade na tela (usa a YouTube IFrame
-  API oficial, que respeita o autoplay porque é chamada em resposta direta
-  ao clique do usuário — diferente de só passar `autoplay=1` na URL do
-  iframe, que muitos navegadores ignoram). Se for Spotify, mostra o player
-  deles com play em destaque. Depois de tocar, aparece "role pra baixo".
-- **Contador ao vivo** — dias/horas/minutos/segundos juntos.
-- **4 perguntas estruturadas** — "Onde se conheceram", "Como foi o primeiro
-  encontro", "O que mais amam um no outro", "Um sonho que têm juntos". Cada
-  tema usa essas respostas como conteúdo temático (episódios no Netflix,
-  faixas no Spotify, seções com foto no Padrão).
-- **Até 15 fotos**, usadas em múltiplos pontos de cada tema.
-- **Frase do casal + frase aleatória** — sorteada do banco de 100 frases.
-- **Declaração de amor final** — sorteada do banco de 30 declarações
-  (parágrafo médio, 3-5 frases), como fechamento emocional da página.
-- **2 temas exclusivos completos** (order bump) — Netflix e Spotify, cada
-  um com múltiplas seções/"dobras" de scroll e corações animados na tela
-  final.
-- **Footer "feito com LoveAndLove 💛"**
+A página pública (`/c/[slug]`) funciona como um carrossel de Stories,
+navegado por toque (direita avança, esquerda volta), com barrinhas de
+progresso no topo:
+
+1. **Capa** — foto de fundo, nome do casal, botão de tocar a história
+2. **Contador** — "juntos há X dias"
+3. **Música** — story dedicado à trilha (só aparece se o casal tiver música)
+4. **As 4 respostas do casal** — onde se conheceram, primeiro encontro, o
+   que mais amam, sonho juntos — cada uma com uma foto de fundo desfocada
+5. **Galeria** — um story por foto restante, com legendas poéticas
+   (intercalando a frase do casal com uma frase aleatória do banco)
+6. **Declaração de amor** — sorteada do banco de 30, parágrafo médio
+7. **Final** — "TE AMO" com pétalas caindo
+
+A música, quando existe, começa a tocar no primeiro toque do usuário (na
+capa) e **persiste durante toda a navegação** entre os stories — ela não
+reinicia nem para ao trocar de story, porque o player vive fora da troca de
+conteúdo visual, só sendo montado uma única vez.
+
+### Sobre o player de música
+
+Usa a **YouTube IFrame API oficial**, chamando `playVideo()` explicitamente
+dentro do mesmo clique do usuário — isso é respeitado pelos navegadores,
+diferente de só colocar `autoplay=1` na URL de um iframe (que é
+silenciosamente bloqueado na maioria dos casos). Um cuidado técnico
+importante: o player só é criado depois que o elemento alvo já existe
+garantidamente no DOM (via callback ref do React), nunca antes — criar o
+`YT.Player` apontando para um elemento que ainda não foi montado falha em
+silêncio, sem erro visível, o que parecia "não fazer nada" nas versões
+anteriores.
+
+Suporta links do YouTube (watch, youtu.be, mobile, Shorts, com playlist) e
+Spotify (com ou sem prefixo de idioma, com ou sem parâmetros extra).
 
 ## QR code com moldura
 
@@ -145,12 +157,11 @@ Lógica em `gerarQrComMoldura()` dentro de `FormularioCriacao.tsx`.
 1. Cliente compra na Cakto
 2. Cakto dispara webhook → sistema gera token único → salva em `pedidos` →
    envia email com link `/criar?token=XXXX`
-3. Cliente abre o link, preenche o formulário, sobe as fotos
+3. Cliente abre o link, preenche o formulário, sobe até 15 fotos
 4. Sistema gera um slug único, salva em `casais`, marca o pedido como usado
 5. Cliente recebe na tela o QR code (com moldura) pra baixar em PNG
-6. Quem escanear o QR cai em `/c/[slug]`: vídeo/música em destaque,
-   contador, as 4 seções da história, frase aleatória, declaração final —
-   e se o casal não comprou o bump "para sempre", a página expira depois
+6. Quem escanear o QR cai em `/c/[slug]`: a experiência completa em Stories
+   — e se o casal não comprou o bump "para sempre", a página expira depois
    de 1 ano
 
 ## Pendências que ficaram para você decidir/testar
@@ -159,3 +170,7 @@ Lógica em `gerarQrComMoldura()` dentro de `FormularioCriacao.tsx`.
   primeiro teste real
 - **CNAE do CNPJ**: regularizar atividade compatível com produto digital
 - **Domínio**: trocar `loveandlove.com.br` nos textos pelo domínio real
+- **Teste real de autoplay**: validar em diferentes navegadores/dispositivos
+  reais, já que políticas de privacidade do navegador do visitante (Brave,
+  Safari com configurações agressivas) podem ainda bloquear autoplay de
+  vídeo mesmo com a implementação tecnicamente correta

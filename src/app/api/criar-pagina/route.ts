@@ -31,8 +31,9 @@ export async function POST(req: NextRequest) {
     const primeiroEncontro = (formData.get("primeiro_encontro") as string) || "";
     const oQueMaisAmam = (formData.get("o_que_mais_amam") as string) || "";
     const sonhoJuntos = (formData.get("sonho_juntos") as string) || "";
-    const musicaUrl = (formData.get("musica_url") as string) || null;
-    const tema = ((formData.get("tema") as string) || "padrao") as Tema;
+    const musicaUrlBruta = (formData.get("musica_url") as string) || "";
+    const musicaUrl = musicaUrlBruta.trim() || null;
+    const tema: Tema = "romantico";
     const paraSempre = formData.get("para_sempre") === "true";
 
     if (!token || !nome1 || !nome2 || !dataInicio || !frase) {

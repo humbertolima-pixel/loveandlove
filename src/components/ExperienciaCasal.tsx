@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import type { Casal, Declaracao, Frase } from "@/lib/types";
-import TemaPadrao from "@/components/temas/TemaPadrao";
-import TemaNetflix from "@/components/temas/TemaNetflix";
-import TemaSpotify from "@/components/temas/TemaSpotify";
+import TemaRomantico from "@/components/temas/TemaRomantico";
 
 export default function ExperienciaCasal({
   casal,
@@ -17,24 +15,13 @@ export default function ExperienciaCasal({
 }) {
   const [comecou, setComecou] = useState(false);
 
-  function handleComecar() {
-    setComecou(true);
-  }
-
-  const props = {
-    casal,
-    fraseAleatoria,
-    declaracaoAleatoria,
-    comecou,
-    onComecar: handleComecar,
-  };
-
-  switch (casal.tema) {
-    case "netflix":
-      return <TemaNetflix {...props} />;
-    case "spotify":
-      return <TemaSpotify {...props} />;
-    default:
-      return <TemaPadrao {...props} />;
-  }
+  return (
+    <TemaRomantico
+      casal={casal}
+      fraseAleatoria={fraseAleatoria}
+      declaracaoAleatoria={declaracaoAleatoria}
+      comecou={comecou}
+      onComecar={() => setComecou(true)}
+    />
+  );
 }
