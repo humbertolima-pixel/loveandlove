@@ -1,7 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Casal, Declaracao, Frase } from "@/lib/types";
-import TelaAbertura from "@/components/TelaAbertura";
+import PlayerMusica, { detectarMidia } from "@/components/PlayerMusica";
+
+function formatarData(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  return `desde ${d} de ${meses[parseInt(m, 10) - 1]} de ${y}`;
+}
 
 export default function TemaNetflix({
   casal,
@@ -17,193 +24,299 @@ export default function TemaNetflix({
   onComecar: () => void;
 }) {
   const fotos = casal.fotos.length > 0 ? casal.fotos : [];
-  const fotoHero = fotos[0];
+  const fotoCapa = fotos[0];
+  const midia = detectarMidia(casal.musica_url);
 
   const episodios = [
-    { numero: 1, titulo: "Onde tudo começou", texto: casal.onde_se_conheceram, img: fotos[1] ?? fotoHero },
-    { numero: 2, titulo: "O primeiro encontro", texto: casal.primeiro_encontro, img: fotos[2] ?? fotoHero },
-    { numero: 3, titulo: "O que a gente mais ama", texto: casal.o_que_mais_amam, img: fotos[3] ?? fotoHero },
-    { numero: 4, titulo: "O nosso sonho", texto: casal.sonho_juntos, img: fotos[4] ?? fotoHero },
+    { ep: "EP 1", titulo: "Onde tudo começou", texto: casal.onde_se_conheceram, img: fotos[1] ?? fotoCapa },
+    { ep: "EP 2", titulo: "O primeiro encontro", texto: casal.primeiro_encontro, img: fotos[2] ?? fotoCapa },
+    { ep: "EP 3", titulo: "O que a gente mais ama", texto: casal.o_que_mais_amam, img: fotos[3] ?? fotoCapa },
+    { ep: "EP 4", titulo: "O nosso sonho", texto: casal.sonho_juntos, img: fotos[4] ?? fotoCapa },
   ].filter((ep) => ep.texto);
 
-  const momentos = fotos.slice(0, 12);
+  const fotosMosaico = fotos.slice(5, 15);
+  const padroes = ["big", "", "tall", "wide", "", "big", "", "tall", "", ""];
+
+  const [corações] = useState(() =>
+    Array.from({ length: 22 }, () => ({
+      left: Math.random() * 100,
+      fontSize: 0.8 + Math.random() * 1.3,
+      duration: 6 + Math.random() * 6,
+      delay: Math.random() * 8,
+    }))
+  );
 
   return (
-    <div className="netflix-root">
+    <div className="nf2-root">
       <style jsx>{`
-        .netflix-root {
+        .nf2-root {
+          --vinho: #2c0f18;
           --preto: #0a0a0a;
-          --preto-2: #141414;
           --vermelho: #e50914;
-          --branco: #f5f5f1;
-          --cinza-texto: #b3b3b3;
+          --dourado: #c9974a;
+          --branco: #f5f0ea;
+          --cinza: #9a9a9a;
           background: var(--preto);
           color: var(--branco);
-          font-family: -apple-system, sans-serif;
-          min-height: 100vh;
+          font-family: "Inter", -apple-system, sans-serif;
           overflow-x: hidden;
         }
-        .netflix-root img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        .nf-display { font-family: Georgia, serif; letter-spacing: 0.02em; }
+        .nf2-root img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .script { font-family: Georgia, serif; font-style: italic; }
+        .display-font { font-family: Georgia, serif; letter-spacing: 0.03em; }
 
-        @keyframes coracao-flutua {
-          0% { transform: translateY(0) scale(0.8); opacity: 0; }
-          15% { opacity: 1; }
-          100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+        @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-btn {
+          0% { box-shadow: 0 0 0 0 rgba(229,9,20,.45); }
+          70% { box-shadow: 0 0 0 22px rgba(229,9,20,0); }
+          100% { box-shadow: 0 0 0 0 rgba(229,9,20,0); }
         }
-        .coracao { position: absolute; font-size: 1.4rem; animation: coracao-flutua 3.5s ease-in infinite; pointer-events: none; }
+        @keyframes pulse-line { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+        @keyframes fall {
+          0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+          10% { opacity: .85; }
+          100% { transform: translateY(115vh) rotate(40deg); opacity: 0; }
+        }
 
-        header {
+        .capa {
+          position: relative; min-height: 100vh;
+          display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+          text-align: center; padding: 8vh 6vw 9vh;
+          background-size: cover; background-position: center;
+        }
+        .capa::before {
+          content: ""; position: absolute; inset: 0;
+          background:
+            linear-gradient(180deg, rgba(10,10,10,.15) 0%, rgba(10,10,10,.35) 40%, var(--preto) 96%),
+            radial-gradient(circle at 50% 20%, rgba(0,0,0,.1), rgba(0,0,0,.55));
+        }
+        .capa-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+        .eyebrow { font-size: .68rem; letter-spacing: .28em; text-transform: uppercase; color: rgba(245,240,234,.55); margin-bottom: .4rem; }
+        .eyebrow-2 { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dourado); font-weight: 600; margin-bottom: 1.1rem; }
+        .capa h1 { font-size: clamp(2.6rem, 8vw, 5.2rem); line-height: 1.05; text-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        .capa h1 .amp { color: var(--dourado); }
+        .desde { margin-top: .7rem; font-size: .85rem; color: rgba(245,240,234,.7); letter-spacing: .05em; }
+
+        .play-gate { margin-top: 2.6rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        .play-btn {
+          width: 78px; height: 78px; border-radius: 50%; background: var(--vermelho);
           display: flex; align-items: center; justify-content: center;
-          padding: 1.1rem 4vw;
+          animation: pulse-btn 2.2s infinite; transition: transform .25s; border: none; cursor: pointer;
         }
-        .logo { font-size: 1.4rem; font-weight: 700; color: var(--vermelho); }
-        .logo span { color: var(--branco); }
+        .play-btn:hover { transform: scale(1.08); }
+        .play-hint { font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dourado); opacity: .85; }
 
-        .intro {
-          max-width: 760px; margin: 0 auto; padding: 4rem 4vw 2rem; text-align: center;
+        .frase-final { max-width: 46ch; margin-top: 1.8rem; color: rgba(245,240,234,.8); font-size: 1.1rem; line-height: 1.6; animation: fadein .8s ease; }
+
+        .scroll-cue { margin-top: 2.6rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dourado); opacity: .85; cursor: pointer; }
+        .scroll-cue .line { width: 1px; height: 30px; background: linear-gradient(var(--dourado), transparent); animation: pulse-line 2s infinite ease-in-out; }
+
+        .mini-player {
+          position: fixed; bottom: 18px; right: 18px; z-index: 300;
+          background: rgba(20,20,20,.92); border: 1px solid #333; border-radius: 12px;
+          padding: 8px; display: flex; align-items: center; gap: .6rem;
+          backdrop-filter: blur(6px);
         }
-        .eyebrow { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--vermelho); font-weight: 700; }
-        .intro h2 { font-size: clamp(1.8rem, 5vw, 3rem); margin: .8rem 0 1.2rem; font-family: Georgia, serif; }
-        .intro p { color: #dcdcdc; line-height: 1.75; font-size: 1.05rem; }
-        .intro .sub-frase { margin-top: 1.2rem; color: var(--vermelho); font-style: italic; font-size: .95rem; }
 
-        .row-section { padding: 3.2rem 0 1rem; }
-        .row-head { padding: 0 4vw; margin-bottom: 1rem; display: flex; align-items: baseline; gap: .8rem; }
-        .row-head h2 { font-size: 1.4rem; font-weight: 700; }
-        .row-sub { font-size: .78rem; color: var(--cinza-texto); }
+        .black-area { background: var(--preto); padding-top: 6vh; }
+        .lab-logo { text-align: center; font-size: 1.6rem; letter-spacing: .03em; margin-bottom: 3.5rem; font-weight: 700; }
+        .lab-logo .l { color: var(--vermelho); }
 
-        .ep-full {
-          display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; max-width: 980px; margin: 0 auto;
-          padding: 3.5rem 4vw;
+        .sinopse { max-width: 720px; margin: 0 auto; padding: 0 6vw 6vh; text-align: center; }
+        .tag { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--vermelho); font-weight: 700; }
+        .sinopse h2 { font-size: clamp(1.9rem, 4.5vw, 2.6rem); margin: .7rem 0 1.1rem; }
+        .sinopse .quote { color: var(--vermelho); font-size: 1.2rem; line-height: 1.5; }
+        .sinopse .quote-2 { margin-top: .8rem; color: var(--cinza); font-size: .95rem; }
+
+        .episodios { max-width: 980px; margin: 0 auto; padding: 2vh 6vw 7vh; display: flex; flex-direction: column; gap: 5rem; }
+        .ep-row { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+        .ep-row.invert .ep-media { order: 2; }
+        .ep-row.invert .ep-text { order: 1; }
+        .ep-media { aspect-ratio: 4/3; border-radius: 10px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,.5); }
+        .ep-tag { display: inline-block; background: var(--vermelho); font-size: .85rem; font-weight: 700; letter-spacing: .04em; padding: .25rem .7rem; border-radius: 4px; margin-bottom: .9rem; }
+        .ep-text h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: .5rem; }
+        .ep-text p { color: var(--cinza); font-size: .95rem; line-height: 1.6; }
+        @media (max-width: 720px) {
+          .ep-row, .ep-row.invert { grid-template-columns: 1fr; }
+          .ep-row.invert .ep-media { order: 1; }
+          .ep-row.invert .ep-text { order: 2; }
         }
-        .ep-full.invertido { flex-direction: row-reverse; }
-        .ep-img { flex: 1 1 320px; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; }
-        .ep-info { flex: 1 1 320px; }
-        .ep-num-tag { display: inline-block; background: var(--vermelho); padding: .3rem .8rem; border-radius: 3px; font-size: .72rem; font-weight: 700; margin-bottom: .8rem; }
-        .ep-info h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: .8rem; }
-        .ep-info p { color: var(--cinza-texto); line-height: 1.65; font-size: 1rem; }
 
-        .row-scroll { display: flex; gap: .9rem; overflow-x: auto; padding: 0 4vw 1.2rem; scrollbar-width: none; }
-        .row-scroll::-webkit-scrollbar { display: none; }
-        .photo-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 6px; overflow: hidden; position: relative; transition: transform .3s; }
-        .photo-card:hover { transform: scale(1.04); }
-
-        .cast-row { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding: 0 4vw; }
-        .cast-item { text-align: center; }
-        .cast-photo { width: 110px; height: 110px; border-radius: 50%; overflow: hidden; margin: 0 auto .7rem; border: 2px solid var(--vermelho); }
-        .cast-name { font-weight: 700; font-size: .9rem; }
-        .cast-role { font-size: .76rem; color: var(--cinza-texto); margin-top: .2rem; }
+        .mosaico-head { text-align: center; padding: 2vh 6vw 0; }
+        .mosaico-head h2 { font-size: clamp(1.9rem, 4.5vw, 2.6rem); margin: .7rem 0 .4rem; }
+        .mosaico-head p { color: var(--cinza); font-size: .92rem; max-width: 46ch; margin: 0 auto; }
+        .mosaico { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 140px; gap: .5rem; padding: 3rem 4vw 7vh; max-width: 1200px; margin: 0 auto; }
+        .mosaico-item { position: relative; overflow: hidden; border-radius: 6px; transition: transform .3s; }
+        .mosaico-item:hover { transform: scale(1.03); }
+        .mosaico-item.big { grid-column: span 2; grid-row: span 2; }
+        .mosaico-item.wide { grid-column: span 2; }
+        .mosaico-item.tall { grid-row: span 2; }
+        @media (max-width: 760px) {
+          .mosaico { grid-template-columns: repeat(3,1fr); grid-auto-rows: 110px; }
+          .mosaico-item.big { grid-column: span 2; grid-row: span 2; }
+        }
 
         .final-screen {
-          min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          text-align: center; padding: 6vh 6vw; position: relative; overflow: hidden;
-          background: radial-gradient(circle at 50% 30%, rgba(229,9,20,.16), transparent 60%), var(--preto);
+          min-height: 100vh; position: relative; overflow: hidden;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+          padding: 8vh 6vw;
+          background: radial-gradient(circle at 50% 35%, rgba(229,9,20,.14), transparent 60%), linear-gradient(180deg, var(--preto), #1a0509);
         }
-        .final-screen .eyebrow-2 { font-size: .76rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cinza-texto); margin-bottom: 1.2rem; }
-        .final-screen .declaracao { max-width: 42ch; color: #e6e6e6; font-size: 1.02rem; line-height: 1.75; margin-bottom: 2.5rem; }
-        .final-screen h2 { font-size: clamp(2.8rem, 14vw, 7rem); color: var(--vermelho); text-shadow: 0 0 70px rgba(229,9,20,.5); }
-        .final-screen .sub { margin-top: 1.4rem; max-width: 36ch; color: #e6e6e6; font-size: 1rem; line-height: 1.7; }
+        .hearts-fall { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .heart-particle { position: absolute; top: -40px; color: var(--dourado); animation: fall linear infinite; }
+        .declaracao { max-width: 42ch; color: #e6e6e6; font-size: 1rem; line-height: 1.75; margin-bottom: 2.2rem; position: relative; z-index: 2; }
+        .next-ep { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cinza); margin-bottom: 1.2rem; position: relative; z-index: 2; }
+        .final-screen h2 { font-size: clamp(3.4rem, 13vw, 7.5rem); color: var(--vermelho); line-height: 1; text-shadow: 0 0 60px rgba(229,9,20,.45); position: relative; z-index: 2; }
+        .legenda { margin-top: 1.4rem; max-width: 36ch; color: #cfcfcf; font-size: .98rem; line-height: 1.7; position: relative; z-index: 2; }
 
-        footer { text-align: center; padding: 2.2rem 1rem 3rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
+        footer { text-align: center; padding: 2.2rem 1rem 3rem; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
+        footer .h { color: var(--dourado); }
       `}</style>
 
-      <TelaAbertura
-        nome1={casal.nome1}
-        nome2={casal.nome2}
-        musicaUrl={casal.musica_url}
-        onComecar={onComecar}
-      />
+      <section className="capa" style={fotoCapa ? { backgroundImage: `url(${fotoCapa})` } : undefined}>
+        <div className="capa-content">
+          <div className="eyebrow">começou</div>
+          <div className="eyebrow-2">uma história só de</div>
+          <h1 className="script">
+            {casal.nome1} <span className="amp">&amp;</span> {casal.nome2}
+          </h1>
+          <div className="desde">{formatarData(casal.data_inicio)}</div>
 
-      <div id="conteudo-principal">
-        <header>
-          <div className="logo">LOVE <span>&</span> LOVE</div>
-        </header>
+          {!comecou ? (
+            <div className="play-gate">
+              <button className="play-btn" aria-label="Tocar nossa música" onClick={onComecar}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+              <span className="play-hint">toque pra tocar nossa música</span>
+            </div>
+          ) : (
+            <p className="frase-final script">{casal.frase}</p>
+          )}
 
-        <section className="intro">
-          <span className="eyebrow">sinopse</span>
-          <h2 className="nf-display">{casal.nome1} & {casal.nome2}</h2>
-          <p>{casal.frase}</p>
-          {fraseAleatoria && <p className="sub-frase">&ldquo;{fraseAleatoria.texto}&rdquo;</p>}
+          <div
+            className="scroll-cue"
+            onClick={() =>
+              document.getElementById("conteudo-principal")?.scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            <span>role pra baixo</span>
+            <div className="line" />
+          </div>
+        </div>
+      </section>
+
+      <div className="black-area" id="conteudo-principal">
+        <div className="lab-logo">
+          <span className="l">LOVE</span> <span>&amp;</span> <span className="l">LOVE</span>
+        </div>
+
+        <RevealSection className="sinopse">
+          <span className="tag">sinopse</span>
+          <h2 className="script">{casal.nome1} & {casal.nome2}</h2>
+          <p className="quote script">&ldquo;{casal.frase}&rdquo;</p>
+          {fraseAleatoria && <p className="quote-2">{fraseAleatoria.texto}</p>}
+        </RevealSection>
+
+        <section className="episodios">
+          {episodios.map((ep, i) => (
+            <RevealSection key={ep.ep} className={`ep-row ${i % 2 === 1 ? "invert" : ""}`}>
+              {ep.img && <div className="ep-media"><img src={ep.img} alt="" /></div>}
+              <div className="ep-text">
+                <span className="ep-tag">{ep.ep}</span>
+                <h3>{ep.titulo}</h3>
+                <p>{ep.texto}</p>
+              </div>
+            </RevealSection>
+          ))}
         </section>
 
-        {episodios.map((ep, i) => (
-          <section key={ep.numero} className={`ep-full ${i % 2 === 1 ? "invertido" : ""}`}>
-            {ep.img && (
-              <div className="ep-img"><img src={ep.img} alt="" /></div>
-            )}
-            <div className="ep-info">
-              <span className="ep-num-tag">EP {ep.numero}</span>
-              <h3>{ep.titulo}</h3>
-              <p>{ep.texto}</p>
-            </div>
-          </section>
-        ))}
-
-        {momentos.length > 0 && (
-          <section className="row-section">
-            <div className="row-head">
-              <h2>Em destaque: nossos momentos</h2>
-              <span className="row-sub">cenas favoritas</span>
-            </div>
-            <div className="row-scroll">
-              {momentos.map((m, i) => (
-                <div key={i} className="photo-card">
-                  <img src={m} alt="" />
+        {fotosMosaico.length > 0 && (
+          <>
+            <RevealSection className="mosaico-head">
+              <span className="tag">galeria</span>
+              <h2 className="script">Cada foto, um pedacinho da gente</h2>
+              <p>Tudo que vivemos, num só lugar.</p>
+            </RevealSection>
+            <RevealSection className="mosaico">
+              {fotosMosaico.map((src, i) => (
+                <div key={i} className={`mosaico-item ${padroes[i] || ""}`}>
+                  <img src={src} alt={`momento ${i + 1}`} />
                 </div>
               ))}
-            </div>
-          </section>
+            </RevealSection>
+          </>
         )}
-
-        <section className="row-section">
-          <div className="row-head">
-            <h2>Elenco principal</h2>
-            <span className="row-sub">os protagonistas</span>
-          </div>
-          <div className="cast-row">
-            <div className="cast-item">
-              {fotos[0] && <div className="cast-photo"><img src={fotos[0]} alt="" /></div>}
-              <div className="cast-name">{casal.nome1}</div>
-              <div className="cast-role">protagonista</div>
-            </div>
-            <div className="cast-item">
-              {(fotos[1] ?? fotos[0]) && <div className="cast-photo"><img src={fotos[1] ?? fotos[0]} alt="" /></div>}
-              <div className="cast-name">{casal.nome2}</div>
-              <div className="cast-role">protagonista</div>
-            </div>
-          </div>
-        </section>
-
-        <section className="final-screen">
-          {comecou && <CoracoesFlutuantes />}
-          {declaracaoAleatoria && (
-            <p className="declaracao">{declaracaoAleatoria.texto}</p>
-          )}
-          <span className="eyebrow-2">próximo episódio em: para sempre</span>
-          <h2 className="nf-display">TE AMO</h2>
-          <p className="sub">E essa é só a primeira temporada da nossa história.</p>
-        </section>
-
-        <footer>Love &amp; Love — feito com carinho, só pra você 💛</footer>
       </div>
+
+      <RevealSection className="final-screen">
+        {comecou && (
+          <div className="hearts-fall">
+            {corações.map((c, i) => (
+              <span
+                key={i}
+                className="heart-particle"
+                style={{
+                  left: `${c.left}%`,
+                  fontSize: `${c.fontSize}rem`,
+                  animationDuration: `${c.duration}s`,
+                  animationDelay: `${c.delay}s`,
+                }}
+              >
+                ♡
+              </span>
+            ))}
+          </div>
+        )}
+        {declaracaoAleatoria && <p className="declaracao">{declaracaoAleatoria.texto}</p>}
+        <div className="next-ep">próximo episódio em: para sempre</div>
+        <h2 className="script">TE AMO</h2>
+        <p className="legenda">E essa é só a primeira temporada da nossa história.</p>
+      </RevealSection>
+
+      <footer><span className="h">♡</span> feito por LoveAndLove</footer>
+
+      {comecou && midia && (
+        <div className="mini-player">
+          <PlayerMusica midia={midia} ativo={comecou} tamanho="pequeno" />
+        </div>
+      )}
     </div>
   );
 }
 
-function CoracoesFlutuantes() {
-  const posicoes = [10, 25, 40, 55, 70, 85];
+function RevealSection({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const [visivel, setVisivel] = useState(false);
+
   return (
-    <>
-      {posicoes.map((left, i) => (
-        <span
-          key={i}
-          className="coracao"
-          style={{ left: `${left}%`, bottom: "10%", animationDelay: `${i * 0.6}s` }}
-        >
-          💛
-        </span>
-      ))}
-    </>
+    <div
+      ref={(el) => {
+        if (!el || visivel) return;
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) setVisivel(true);
+            });
+          },
+          { threshold: 0.12 }
+        );
+        observer.observe(el);
+      }}
+      className={className}
+      style={{
+        opacity: visivel ? 1 : 0,
+        transform: visivel ? "translateY(0)" : "translateY(22px)",
+        transition: "opacity .8s ease, transform .8s ease",
+      }}
+    >
+      {children}
+    </div>
   );
 }

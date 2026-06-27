@@ -6,7 +6,7 @@ import ContadorVivo from "@/components/ContadorVivo";
 import SlideshowFotos from "@/components/SlideshowFotos";
 import MosaicoFotos from "@/components/MosaicoFotos";
 import SecaoPergunta from "@/components/SecaoPergunta";
-import TelaAbertura from "@/components/TelaAbertura";
+import PlayerMusica, { detectarMidia } from "@/components/PlayerMusica";
 
 export default function TemaPadrao({
   casal,
@@ -22,17 +22,31 @@ export default function TemaPadrao({
   onComecar: () => void;
 }) {
   const fotos = casal.fotos;
+  const midia = detectarMidia(casal.musica_url);
 
   return (
-    <div className="bg-wine">
-      <TelaAbertura
-        nome1={casal.nome1}
-        nome2={casal.nome2}
-        musicaUrl={casal.musica_url}
-        onComecar={onComecar}
-      />
+    <div className="bg-wine min-h-screen">
+      {!comecou && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-wine px-6">
+          <p className="fade-up font-body text-xs uppercase tracking-[0.25em] text-rose/80 text-center">
+            uma história só de
+          </p>
+          <h1 className="fade-up font-display text-3xl md:text-5xl text-cream italic text-center">
+            {casal.nome1} <span className="text-gold">&</span> {casal.nome2}
+          </h1>
+          <button
+            onClick={onComecar}
+            className="fade-up flex items-center gap-3 bg-gold text-wine-black font-body font-semibold px-8 py-4 rounded-full hover:opacity-90 transition pulse-soft"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            Tocar a nossa história
+          </button>
+        </div>
+      )}
 
-      <main id="conteudo-principal" className="flex flex-col items-center gap-20 px-6 py-24">
+      <main className="flex flex-col items-center gap-20 px-6 py-24">
         <ContadorVivo dataInicio={casal.data_inicio} />
 
         {fotos.length > 0 && <SlideshowFotos fotos={fotos} />}
@@ -74,6 +88,12 @@ export default function TemaPadrao({
           <span aria-hidden>💛</span>
         </footer>
       </main>
+
+      {comecou && midia && (
+        <div className="fixed bottom-4 right-4 z-30 bg-wine-black/90 border border-gold/30 rounded-xl p-2">
+          <PlayerMusica midia={midia} ativo={comecou} tamanho="pequeno" />
+        </div>
+      )}
     </div>
   );
 }
