@@ -27,7 +27,10 @@ export async function POST(req: NextRequest) {
     const nome2 = formData.get("nome2") as string;
     const dataInicio = formData.get("data_inicio") as string;
     const frase = formData.get("frase") as string;
-    const historia = (formData.get("historia") as string) || "";
+    const ondeSeConheceram = (formData.get("onde_se_conheceram") as string) || "";
+    const primeiroEncontro = (formData.get("primeiro_encontro") as string) || "";
+    const oQueMaisAmam = (formData.get("o_que_mais_amam") as string) || "";
+    const sonhoJuntos = (formData.get("sonho_juntos") as string) || "";
     const musicaUrl = (formData.get("musica_url") as string) || null;
     const tema = ((formData.get("tema") as string) || "padrao") as Tema;
     const paraSempre = formData.get("para_sempre") === "true";
@@ -94,7 +97,10 @@ export async function POST(req: NextRequest) {
       nome2,
       data_inicio: dataInicio,
       frase,
-      historia,
+      onde_se_conheceram: ondeSeConheceram,
+      primeiro_encontro: primeiroEncontro,
+      o_que_mais_amam: oQueMaisAmam,
+      sonho_juntos: sonhoJuntos,
       fotos: urlsFotos,
       musica_url: musicaUrl,
       tema,

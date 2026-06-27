@@ -1,35 +1,30 @@
 "use client";
 
-import type { Casal, Frase } from "@/lib/types";
-import PlayerMusica from "@/components/PlayerMusica";
+import type { Casal, Declaracao, Frase } from "@/lib/types";
+import TelaAbertura from "@/components/TelaAbertura";
 
 export default function TemaNetflix({
   casal,
   fraseAleatoria,
+  declaracaoAleatoria,
   comecou,
   onComecar,
 }: {
   casal: Casal;
   fraseAleatoria: Frase | null;
+  declaracaoAleatoria: Declaracao | null;
   comecou: boolean;
   onComecar: () => void;
 }) {
   const fotos = casal.fotos.length > 0 ? casal.fotos : [];
   const fotoHero = fotos[0];
 
-  // Divide a história livre em "episódios" — um por parágrafo/quebra de linha
-  const paragrafos = casal.historia
-    .split(/\n+/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const episodios = paragrafos.length > 0
-    ? paragrafos.map((texto, i) => ({
-        numero: i + 1,
-        texto,
-        img: fotos[i % Math.max(fotos.length, 1)] ?? fotoHero,
-      }))
-    : [{ numero: 1, texto: casal.frase, img: fotoHero }];
+  const episodios = [
+    { numero: 1, titulo: "Onde tudo começou", texto: casal.onde_se_conheceram, img: fotos[1] ?? fotoHero },
+    { numero: 2, titulo: "O primeiro encontro", texto: casal.primeiro_encontro, img: fotos[2] ?? fotoHero },
+    { numero: 3, titulo: "O que a gente mais ama", texto: casal.o_que_mais_amam, img: fotos[3] ?? fotoHero },
+    { numero: 4, titulo: "O nosso sonho", texto: casal.sonho_juntos, img: fotos[4] ?? fotoHero },
+  ].filter((ep) => ep.texto);
 
   const momentos = fotos.slice(0, 12);
 
@@ -56,72 +51,43 @@ export default function TemaNetflix({
           15% { opacity: 1; }
           100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
         }
-        .coracao {
-          position: absolute; font-size: 1.4rem; animation: coracao-flutua 3.5s ease-in infinite;
-          pointer-events: none;
-        }
+        .coracao { position: absolute; font-size: 1.4rem; animation: coracao-flutua 3.5s ease-in infinite; pointer-events: none; }
 
         header {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-          display: flex; align-items: center; justify-content: space-between;
+          display: flex; align-items: center; justify-content: center;
           padding: 1.1rem 4vw;
-          background: linear-gradient(180deg, rgba(0,0,0,.85), transparent);
         }
         .logo { font-size: 1.4rem; font-weight: 700; color: var(--vermelho); }
         .logo span { color: var(--branco); }
 
-        .hero {
-          position: relative; min-height: 100vh;
-          display: flex; align-items: flex-end;
-          padding: 0 4vw 8vh;
-          background-size: cover; background-position: center;
+        .intro {
+          max-width: 760px; margin: 0 auto; padding: 4rem 4vw 2rem; text-align: center;
         }
-        .hero::after {
-          content: ""; position: absolute; inset: 0;
-          background:
-            linear-gradient(180deg, rgba(10,10,10,.2) 0%, rgba(10,10,10,.35) 45%, var(--preto) 92%),
-            linear-gradient(90deg, rgba(10,10,10,.85) 0%, rgba(10,10,10,.15) 55%);
-        }
-        .hero-content { position: relative; z-index: 2; max-width: 680px; }
-        .tag-row { display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .tag-row span {
-          font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
-          border: 1px solid #555; padding: .25rem .6rem; border-radius: 3px; color: var(--cinza-texto);
-        }
-        .hero h1 { font-size: clamp(2.4rem, 8vw, 5rem); line-height: .98; animation: fade-in-up 1s ease-out; }
-        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .match { color: #46d369; font-weight: 700; font-size: .95rem; margin-top: .9rem; }
-        .hero .desc { margin-top: .8rem; color: #dcdcdc; font-size: 1rem; line-height: 1.6; max-width: 52ch; }
-        .cta-row { display: flex; gap: .8rem; margin-top: 1.6rem; flex-wrap: wrap; }
-        .btn { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem; border-radius: 4px; font-weight: 700; font-size: .95rem; border: none; cursor: pointer; }
-        .btn-play { background: var(--branco); color: #111; }
-        .btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .eyebrow { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--vermelho); font-weight: 700; }
+        .intro h2 { font-size: clamp(1.8rem, 5vw, 3rem); margin: .8rem 0 1.2rem; font-family: Georgia, serif; }
+        .intro p { color: #dcdcdc; line-height: 1.75; font-size: 1.05rem; }
+        .intro .sub-frase { margin-top: 1.2rem; color: var(--vermelho); font-style: italic; font-size: .95rem; }
 
         .row-section { padding: 3.2rem 0 1rem; }
         .row-head { padding: 0 4vw; margin-bottom: 1rem; display: flex; align-items: baseline; gap: .8rem; }
-        .row-head h2 { font-size: 1.3rem; font-weight: 700; }
+        .row-head h2 { font-size: 1.4rem; font-weight: 700; }
         .row-sub { font-size: .78rem; color: var(--cinza-texto); }
+
+        .ep-full {
+          display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; max-width: 980px; margin: 0 auto;
+          padding: 3.5rem 4vw;
+        }
+        .ep-full.invertido { flex-direction: row-reverse; }
+        .ep-img { flex: 1 1 320px; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; }
+        .ep-info { flex: 1 1 320px; }
+        .ep-num-tag { display: inline-block; background: var(--vermelho); padding: .3rem .8rem; border-radius: 3px; font-size: .72rem; font-weight: 700; margin-bottom: .8rem; }
+        .ep-info h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: .8rem; }
+        .ep-info p { color: var(--cinza-texto); line-height: 1.65; font-size: 1rem; }
+
         .row-scroll { display: flex; gap: .9rem; overflow-x: auto; padding: 0 4vw 1.2rem; scrollbar-width: none; }
         .row-scroll::-webkit-scrollbar { display: none; }
-
-        .ep-card { flex: 0 0 280px; background: var(--preto-2); border-radius: 6px; overflow: hidden; transition: transform .3s; }
-        .ep-card:hover { transform: scale(1.03); }
-        .ep-thumb { height: 150px; position: relative; }
-        .ep-num {
-          position: absolute; top: .6rem; left: .7rem; font-weight: 700;
-          font-size: 1rem; background: rgba(0,0,0,.55); padding: .1rem .55rem; border-radius: 3px;
-        }
-        .ep-body { padding: .9rem 1rem 1.1rem; }
-        .ep-text { font-size: .85rem; color: var(--cinza-texto); line-height: 1.55; max-height: 5.5em; overflow: hidden; }
-
         .photo-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 6px; overflow: hidden; position: relative; transition: transform .3s; }
         .photo-card:hover { transform: scale(1.04); }
-
-        .synopsis { max-width: 760px; margin: 0 auto; padding: 4rem 4vw; text-align: center; }
-        .eyebrow { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--vermelho); font-weight: 700; }
-        .synopsis h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin: .8rem 0 1.2rem; }
-        .synopsis p { color: #dcdcdc; line-height: 1.75; font-size: 1rem; }
-        .synopsis .sub-frase { margin-top: 1rem; color: var(--vermelho); font-style: italic; font-size: .92rem; }
 
         .cast-row { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding: 0 4vw; }
         .cast-item { text-align: center; }
@@ -134,150 +100,93 @@ export default function TemaNetflix({
           text-align: center; padding: 6vh 6vw; position: relative; overflow: hidden;
           background: radial-gradient(circle at 50% 30%, rgba(229,9,20,.16), transparent 60%), var(--preto);
         }
-        .next-ep { font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cinza-texto); margin-bottom: 1.4rem; }
+        .final-screen .eyebrow-2 { font-size: .76rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cinza-texto); margin-bottom: 1.2rem; }
+        .final-screen .declaracao { max-width: 42ch; color: #e6e6e6; font-size: 1.02rem; line-height: 1.75; margin-bottom: 2.5rem; }
         .final-screen h2 { font-size: clamp(2.8rem, 14vw, 7rem); color: var(--vermelho); text-shadow: 0 0 70px rgba(229,9,20,.5); }
-        .final-screen p { margin-top: 1.4rem; max-width: 36ch; color: #e6e6e6; font-size: 1rem; line-height: 1.7; }
-
-        .music-section { padding: 3rem 4vw; text-align: center; }
+        .final-screen .sub { margin-top: 1.4rem; max-width: 36ch; color: #e6e6e6; font-size: 1rem; line-height: 1.7; }
 
         footer { text-align: center; padding: 2.2rem 1rem 3rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #555; }
       `}</style>
 
-      <header>
-        <div className="logo">LOVE <span>&</span> LOVE</div>
-      </header>
+      <TelaAbertura
+        nome1={casal.nome1}
+        nome2={casal.nome2}
+        musicaUrl={casal.musica_url}
+        onComecar={onComecar}
+      />
 
-      <section
-        className="hero"
-        style={fotoHero ? { backgroundImage: `url(${fotoHero})` } : undefined}
-      >
-        <div className="hero-content">
-          <div className="tag-row">
-            <span>Romance</span><span>Comédia</span><span>Dramalhão</span>
-          </div>
-          <h1 className="nf-display">{casal.nome1} & {casal.nome2}</h1>
-          <div className="match">100% pra você</div>
-          <p className="desc">{casal.frase}</p>
-          <div className="cta-row">
-            <button
-              className="btn btn-play"
-              onClick={() => document.getElementById("nf-temporada")?.scrollIntoView({ behavior: "smooth" })}
-            >
-              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> Assistir
-            </button>
-          </div>
-        </div>
-      </section>
+      <div id="conteudo-principal">
+        <header>
+          <div className="logo">LOVE <span>&</span> LOVE</div>
+        </header>
 
-      <section className="synopsis">
-        <span className="eyebrow">sinopse</span>
-        <h2 className="nf-display">Quando dois se tornam um &ldquo;nós&rdquo;</h2>
-        <p>{casal.frase}</p>
-        {fraseAleatoria && <p className="sub-frase">&ldquo;{fraseAleatoria.texto}&rdquo;</p>}
-      </section>
+        <section className="intro">
+          <span className="eyebrow">sinopse</span>
+          <h2 className="nf-display">{casal.nome1} & {casal.nome2}</h2>
+          <p>{casal.frase}</p>
+          {fraseAleatoria && <p className="sub-frase">&ldquo;{fraseAleatoria.texto}&rdquo;</p>}
+        </section>
 
-      <section className="row-section" id="nf-temporada">
-        <div className="row-head">
-          <h2>Temporada 1: a nossa história</h2>
-          <span className="row-sub">{episodios.length} episódios</span>
-        </div>
-        <div className="row-scroll">
-          {episodios.map((ep) => (
-            <div key={ep.numero} className="ep-card">
-              <div className="ep-thumb">
-                {ep.img && <img src={ep.img} alt="" />}
-                <span className="ep-num">EP {ep.numero}</span>
-              </div>
-              <div className="ep-body">
-                <div className="ep-text">{ep.texto}</div>
-              </div>
+        {episodios.map((ep, i) => (
+          <section key={ep.numero} className={`ep-full ${i % 2 === 1 ? "invertido" : ""}`}>
+            {ep.img && (
+              <div className="ep-img"><img src={ep.img} alt="" /></div>
+            )}
+            <div className="ep-info">
+              <span className="ep-num-tag">EP {ep.numero}</span>
+              <h3>{ep.titulo}</h3>
+              <p>{ep.texto}</p>
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        ))}
 
-      {momentos.length > 0 && (
+        {momentos.length > 0 && (
+          <section className="row-section">
+            <div className="row-head">
+              <h2>Em destaque: nossos momentos</h2>
+              <span className="row-sub">cenas favoritas</span>
+            </div>
+            <div className="row-scroll">
+              {momentos.map((m, i) => (
+                <div key={i} className="photo-card">
+                  <img src={m} alt="" />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="row-section">
           <div className="row-head">
-            <h2>Em destaque: nossos momentos</h2>
-            <span className="row-sub">cenas favoritas</span>
+            <h2>Elenco principal</h2>
+            <span className="row-sub">os protagonistas</span>
           </div>
-          <div className="row-scroll">
-            {momentos.map((m, i) => (
-              <div key={i} className="photo-card">
-                <img src={m} alt="" />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="row-section">
-        <div className="row-head">
-          <h2>Elenco principal</h2>
-          <span className="row-sub">os protagonistas</span>
-        </div>
-        <div className="cast-row">
-          <div className="cast-item">
-            {fotos[0] && <div className="cast-photo"><img src={fotos[0]} alt="" /></div>}
-            <div className="cast-name">{casal.nome1}</div>
-            <div className="cast-role">protagonista</div>
-          </div>
-          <div className="cast-item">
-            {(fotos[1] ?? fotos[0]) && <div className="cast-photo"><img src={fotos[1] ?? fotos[0]} alt="" /></div>}
-            <div className="cast-name">{casal.nome2}</div>
-            <div className="cast-role">protagonista</div>
-          </div>
-        </div>
-      </section>
-
-      {casal.musica_url && (
-        <section className="music-section">
-          <span className="eyebrow">trilha sonora</span>
-          <div style={{ marginTop: "1.2rem" }}>
-            <PlayerMusica url={casal.musica_url} autoplay={comecou} />
+          <div className="cast-row">
+            <div className="cast-item">
+              {fotos[0] && <div className="cast-photo"><img src={fotos[0]} alt="" /></div>}
+              <div className="cast-name">{casal.nome1}</div>
+              <div className="cast-role">protagonista</div>
+            </div>
+            <div className="cast-item">
+              {(fotos[1] ?? fotos[0]) && <div className="cast-photo"><img src={fotos[1] ?? fotos[0]} alt="" /></div>}
+              <div className="cast-name">{casal.nome2}</div>
+              <div className="cast-role">protagonista</div>
+            </div>
           </div>
         </section>
-      )}
 
-      <section className="final-screen">
-        {comecou && <CoracoesFlutuantes />}
-        <span className="next-ep">próximo episódio em: para sempre</span>
-        <h2 className="nf-display">TE AMO</h2>
-        <p>E essa é só a primeira temporada da nossa história.</p>
-      </section>
+        <section className="final-screen">
+          {comecou && <CoracoesFlutuantes />}
+          {declaracaoAleatoria && (
+            <p className="declaracao">{declaracaoAleatoria.texto}</p>
+          )}
+          <span className="eyebrow-2">próximo episódio em: para sempre</span>
+          <h2 className="nf-display">TE AMO</h2>
+          <p className="sub">E essa é só a primeira temporada da nossa história.</p>
+        </section>
 
-      <footer>Love &amp; Love — feito com carinho, só pra você 💛</footer>
-
-      {!comecou && (
-        <div
-          style={{
-            position: "fixed", inset: 0, zIndex: 999, background: "#0a0a0a",
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            textAlign: "center", gap: "2rem",
-          }}
-        >
-          <div className="nf-display" style={{ fontSize: "clamp(2.2rem,9vw,4.5rem)", color: "#e50914" }}>
-            LOVE <span style={{ color: "#f5f5f1" }}>&</span> LOVE
-          </div>
-          <p style={{ color: "#b3b3b3", maxWidth: "30ch", lineHeight: 1.5 }}>
-            Uma minissérie real, estrelada por {casal.nome1} & {casal.nome2}.
-          </p>
-          <button
-            onClick={onComecar}
-            aria-label="Começar"
-            style={{
-              width: 88, height: 88, borderRadius: "50%", background: "#e50914",
-              display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer",
-            }}
-          >
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
-          </button>
-          <span style={{ fontSize: ".7rem", letterSpacing: ".18em", textTransform: "uppercase", color: "#666" }}>
-            toque para assistir
-          </span>
-        </div>
-      )}
+        <footer>Love &amp; Love — feito com carinho, só pra você 💛</footer>
+      </div>
     </div>
   );
 }

@@ -1,100 +1,79 @@
 "use client";
 
 import Link from "next/link";
-import type { Casal, Frase } from "@/lib/types";
+import type { Casal, Declaracao, Frase } from "@/lib/types";
 import ContadorVivo from "@/components/ContadorVivo";
 import SlideshowFotos from "@/components/SlideshowFotos";
 import MosaicoFotos from "@/components/MosaicoFotos";
-import PlayerMusica from "@/components/PlayerMusica";
-import TelaConvite from "@/components/TelaConvite";
+import SecaoPergunta from "@/components/SecaoPergunta";
+import TelaAbertura from "@/components/TelaAbertura";
 
 export default function TemaPadrao({
   casal,
   fraseAleatoria,
+  declaracaoAleatoria,
   comecou,
   onComecar,
 }: {
   casal: Casal;
   fraseAleatoria: Frase | null;
+  declaracaoAleatoria: Declaracao | null;
   comecou: boolean;
   onComecar: () => void;
 }) {
-  const fotoFundo = casal.fotos[0];
+  const fotos = casal.fotos;
 
   return (
-    <>
-      {!comecou && (
-        <TelaConvite
-          nome1={casal.nome1}
-          nome2={casal.nome2}
-          onComecar={onComecar}
-        />
-      )}
+    <div className="bg-wine">
+      <TelaAbertura
+        nome1={casal.nome1}
+        nome2={casal.nome2}
+        musicaUrl={casal.musica_url}
+        onComecar={onComecar}
+      />
 
-      <main
-        className="relative min-h-screen bg-wine flex flex-col items-center justify-center gap-14 px-6 py-24 overflow-hidden"
-      >
-        {/* Fundo desfocado feito da primeira foto, para dar textura sem competir com o conteúdo */}
-        {fotoFundo && (
-          <div
-            className="absolute inset-0 opacity-[0.12] blur-2xl scale-110"
-            style={{
-              backgroundImage: `url(${fotoFundo})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-            aria-hidden
-          />
+      <main id="conteudo-principal" className="flex flex-col items-center gap-20 px-6 py-24">
+        <ContadorVivo dataInicio={casal.data_inicio} />
+
+        {fotos.length > 0 && <SlideshowFotos fotos={fotos} />}
+
+        <div className="flex flex-col items-center gap-3 text-center max-w-md">
+          <p className="font-display text-xl md:text-2xl text-cream/90 italic leading-relaxed fade-up">
+            &ldquo;{casal.frase}&rdquo;
+          </p>
+          {fraseAleatoria && (
+            <p className="font-body text-sm text-rose/70 italic fade-up">
+              {fraseAleatoria.texto}
+            </p>
+          )}
+        </div>
+
+        <SecaoPergunta titulo="Onde se conheceram" texto={casal.onde_se_conheceram} foto={fotos[1]} />
+        <SecaoPergunta titulo="O primeiro encontro" texto={casal.primeiro_encontro} foto={fotos[2]} inverter />
+        <SecaoPergunta titulo="O que mais amam um no outro" texto={casal.o_que_mais_amam} foto={fotos[3]} />
+        <SecaoPergunta titulo="Um sonho que têm juntos" texto={casal.sonho_juntos} foto={fotos[4]} inverter />
+
+        <MosaicoFotos fotos={fotos} inicio={5} quantidade={6} />
+
+        {declaracaoAleatoria && (
+          <div className="fade-up max-w-lg text-center">
+            <p className="font-body text-xs uppercase tracking-[0.2em] text-gold/80 mb-4">
+              uma declaração pra vocês
+            </p>
+            <p className="font-display text-lg md:text-xl text-cream italic leading-relaxed">
+              {declaracaoAleatoria.texto}
+            </p>
+          </div>
         )}
 
-        <div className="relative z-10 flex flex-col items-center gap-14 w-full">
-          <ContadorVivo dataInicio={casal.data_inicio} />
-
-          <div className="fade-up text-center">
-            <h1 className="font-display text-3xl md:text-5xl text-cream italic">
-              {casal.nome1} <span className="text-gold">&</span> {casal.nome2}
-            </h1>
-          </div>
-
-          {casal.fotos.length > 0 && <SlideshowFotos fotos={casal.fotos} />}
-
-          <div className="flex flex-col items-center gap-3 text-center max-w-md">
-            <p className="font-display text-xl md:text-2xl text-cream/90 italic leading-relaxed fade-up">
-              &ldquo;{casal.frase}&rdquo;
-            </p>
-            {fraseAleatoria && (
-              <p className="font-body text-sm text-rose/70 italic fade-up">
-                {fraseAleatoria.texto}
-              </p>
-            )}
-          </div>
-
-          <MosaicoFotos fotos={casal.fotos} />
-
-          {casal.historia && (
-            <div className="fade-up max-w-md text-center">
-              <p className="font-body text-xs uppercase tracking-[0.2em] text-rose/70 mb-3">
-                Nossa história
-              </p>
-              <p className="font-body text-cream/85 text-sm leading-relaxed whitespace-pre-line">
-                {casal.historia}
-              </p>
-            </div>
-          )}
-
-          {casal.musica_url && (
-            <PlayerMusica url={casal.musica_url} autoplay={comecou} />
-          )}
-
-          <footer className="font-body text-xs text-cream/40 mt-4 flex items-center gap-1">
-            feito com{" "}
-            <Link href="/" className="underline">
-              LoveAndLove
-            </Link>
-            <span aria-hidden>💛</span>
-          </footer>
-        </div>
+        <footer className="font-body text-xs text-cream/40 mt-4 flex items-center gap-1">
+          feito com{" "}
+          <Link href="/" className="underline">
+            LoveAndLove
+          </Link>
+          <span aria-hidden>💛</span>
+        </footer>
       </main>
-    </>
+    </div>
   );
 }

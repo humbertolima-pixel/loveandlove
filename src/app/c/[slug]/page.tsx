@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import type { Casal, Frase } from "@/lib/types";
+import type { Casal, Declaracao, Frase } from "@/lib/types";
 import ExperienciaCasal from "@/components/ExperienciaCasal";
 
 const UM_ANO_MS = 365 * 24 * 60 * 60 * 1000;
@@ -27,11 +27,9 @@ async function buscarCasal(slug: string): Promise<Casal | null> {
   return data as Casal;
 }
 
-async function buscarFraseAleatoria(): Promise<Frase | null> {
-  // Conta quantas frases existem e sorteia um índice aleatório.
-  // Evita depender de funções específicas do Postgres para portabilidade.
+async function buscarItemAleatorio<T>(tabela: string): Promise<T | null> {
   const { count } = await supabaseAdmin
-    .from("frases")
+    .from(tabela)
     .select("*", { count: "exact", head: true });
 
   if (!count || count === 0) return null;
@@ -39,14 +37,14 @@ async function buscarFraseAleatoria(): Promise<Frase | null> {
   const indiceAleatorio = Math.floor(Math.random() * count);
 
   const { data, error } = await supabaseAdmin
-    .from("frases")
+    .from(tabela)
     .select("*")
     .range(indiceAleatorio, indiceAleatorio)
     .limit(1)
     .single();
 
   if (error || !data) return null;
-  return data as Frase;
+  return data as T;
 }
 
 export async function generateMetadata({
@@ -75,9 +73,18 @@ export default async function PaginaCasal({ params }: PageProps) {
     return <PaginaExpirada />;
   }
 
-  const fraseAleatoria = await buscarFraseAleatoria();
+  const [fraseAleatoria, declaracaoAleatoria] = await Promise.all([
+    buscarItemAleatorio<Frase>("frases"),
+    buscarItemAleatorio<Declaracao>("declaracoes"),
+  ]);
 
-  return <ExperienciaCasal casal={casal} fraseAleatoria={fraseAleatoria} />;
+  return (
+    <ExperienciaCasal
+      casal={casal}
+      fraseAleatoria={fraseAleatoria}
+      declaracaoAleatoria={declaracaoAleatoria}
+    />
+  );
 }
 
 function PaginaExpirada() {

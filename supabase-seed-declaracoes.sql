@@ -1,0 +1,37 @@
+-- ============================================================
+-- LoveAndLove — Seed de declarações de amor
+-- Rode isso DEPOIS do supabase-schema.sql (ou da migration v3),
+-- uma única vez.
+-- ============================================================
+
+insert into declaracoes (texto) values
+('Eu queria te dizer uma coisa simples, mas que carrega tudo: eu escolho você. Escolhi ontem, escolho hoje, e vou escolher amanhã, e no dia depois, e em todos os dias que vierem. Porque o que a gente construiu não é sorte, é decisão — e a minha decisão sempre vai ser você.'),
+('Se alguém me perguntasse qual foi a melhor coisa que já me aconteceu, eu diria sem pensar: foi te conhecer. Antes de você, eu vivia uma vida boa. Com você, eu aprendi que existia uma vida ainda melhor, e que ela tinha o seu nome escrito em cada capítulo.'),
+('Tem um tipo de amor que é calmo, que não precisa de drama pra existir — só precisa de presença. É isso que eu sinto por você: uma certeza tranquila, do tipo que me faz dormir em paz sabendo que, no fim do dia, é você que eu quero ao meu lado.'),
+('Eu não sei explicar como duas pessoas tão diferentes conseguem se encaixar tão bem, mas sei que comigo e com você isso aconteceu. E se um dia me perguntarem o segredo, eu vou dizer: a gente nunca parou de escolher um ao outro, mesmo nos dias difíceis.'),
+('Você é aquele tipo de presença que eu não sabia que precisava até sentir. Hoje, não consigo imaginar meus dias sem o seu jeito de ser, sem as suas piadas sem graça, sem o seu abraço que resolve quase tudo. Eu te amo do jeito mais simples e mais verdadeiro que existe.'),
+('A gente não escolhe por quem vai se apaixonar, mas escolhe, todos os dias, continuar amando. E é exatamente isso que eu faço com você: escolho te amar mesmo nos dias cansados, mesmo quando a vida aperta, porque ao seu lado tudo fica mais leve de carregar.'),
+('Eu queria guardar esse momento numa caixinha, só pra poder abrir de novo quando precisasse lembrar de como é bom te amar. Mas como isso não é possível, eu escrevo aqui: você é o motivo dos meus melhores dias, e eu não troco isso por nada.'),
+('Tem gente que passa a vida procurando um lugar pra chamar de casa. Eu encontrei o meu em você — não numa cidade, não num endereço, mas no jeito como você me olha, como me escuta, como me faz sentir que pertenço a algum lugar de verdade.'),
+('Se eu pudesse resumir o que sinto por você numa frase só, seria essa: você é a pessoa que faz qualquer dia comum parecer especial. E eu não digo isso pra ser bonito, digo porque é exatamente assim que eu vivo, ao seu lado, todos os dias.'),
+('Eu sei que nem sempre é fácil, que a vida cobra, que os dias cansam — mas existe uma coisa que nunca muda: o tanto que eu te amo. Isso é constante, é base, é o que me sustenta quando tudo o resto parece complicado demais.'),
+('Você sabe que eu não sou de grandes discursos, mas hoje eu quero te dizer com todas as palavras: eu amo a nossa história. Amo o jeito como ela começou, amo como ela cresceu, e amo, principalmente, saber que ainda tem muito capítulo pela frente.'),
+('Eu costumava pensar que amor era só sentir borboletas no estômago. Com você, aprendi que amor também é silêncio confortável, é mão segurando mão sem precisar de motivo, é saber que, aconteça o que acontecer, a gente vai resolver junto.'),
+('Eu não sei se existe um jeito certo de amar alguém, mas se existir, eu espero estar fazendo do jeito certo com você. Porque o que eu sinto é simples assim: quero te ver feliz, quero estar por perto, e quero ser, pra você, o que você é pra mim.'),
+('De todas as coisas boas que já me aconteceram, você é a que eu mais agradeço todos os dias. Não pelo que você faz, mas pelo que você é — alguém que me entende sem explicação, que me acalma sem esforço, que me ama sem condição.'),
+('Tem dias em que eu paro só pra olhar pra você e pensar: como eu tive tanta sorte assim? E mesmo sabendo que sorte não é tudo, eu sei que escolher ficar, dia após dia, foi a melhor decisão que a gente já tomou juntos.'),
+('Eu quero te amar nos dias fáceis e, principalmente, nos difíceis. Porque é fácil amar quando tudo está bem — o desafio, e a beleza, está em continuar escolhendo um ao outro mesmo quando a vida não coopera. E eu escolho você, sempre.'),
+('Não existe um jeito perfeito de dizer o quanto você significa pra mim, mas eu vou tentar: você é o motivo de eu acreditar em finais felizes, mesmo sabendo que a nossa história ainda não terminou — e eu espero que ela nunca termine.'),
+('Eu acho que amor de verdade não é sobre nunca discutir, é sobre sempre voltar um pro outro depois. E é isso que a gente faz: erra, aprende, se desculpa, e continua. Porque o que a gente tem vale mais do que qualquer briga boba.'),
+('Se eu pudesse te dar um presente que durasse pra sempre, seria a certeza de que você é amado, todos os dias, de todas as formas que eu sei amar. E eu sei amar bastante, principalmente quando é você do outro lado.'),
+('Você entrou na minha vida sem avisar e ficou sem pedir permissão — e eu não podia estar mais feliz com essa invasão. Hoje, não consigo separar a minha história da sua, porque em algum momento elas se tornaram uma coisa só.'),
+('Eu queria que você soubesse: nos dias em que eu pareço distraído, estou pensando em você. Nos dias em que pareço cansado, é por você que eu encontro energia. E nos dias em que tudo dá certo, é porque você está do meu lado.'),
+('Amar você não é um esforço, é um alívio. É a parte mais fácil e mais bonita do meu dia. E se um dia você duvidar disso, eu quero que volte e leia essas palavras, porque elas são tão verdadeiras quanto o sol nascer todos os dias.'),
+('Eu não sei o que o futuro guarda, mas sei uma coisa com certeza: eu quero atravessar ele com você. Não importa se vai ser fácil ou difícil — contanto que seja ao seu lado, eu já sei que vai valer a pena.'),
+('Tem um jeito de amar que cresce com o tempo, ao contrário do que dizem por aí. O meu amor por você é assim: cada dia um pouco mais forte, mais certo, mais seu. E eu espero continuar amando você assim, sempre crescendo.'),
+('Eu sei que palavras nunca vão ser suficientes pra explicar o que sinto, mas eu insisto em tentar, porque você merece ouvir, sempre: eu te amo profundamente, sinceramente, e sem nenhuma dúvida de que você é a pessoa certa.'),
+('Eu queria poder voltar no tempo só pra reviver o dia em que te conheci, com a mesma intensidade. Mas como não posso, eu escolho viver intensamente cada novo dia com você — porque cada um deles também merece ser lembrado.'),
+('Você tem o dom de transformar dias ruins em dias suportáveis, e dias bons em dias inesquecíveis. E talvez seja isso que mais me encanta em você: o jeito simples e gigante como você cuida de mim, sem nem precisar tentar.'),
+('Eu não preciso de grandes provas pra saber que esse amor é real — basta olhar pra trás e ver tudo que a gente já passou juntos, e como, mesmo assim, continuamos escolhendo ficar. Isso, pra mim, já é a maior prova que existe.'),
+('Se um dia eu esquecer de te dizer o quanto te amo, me lembra dessas palavras: você é, e sempre vai ser, a pessoa que faz o meu coração sentir que está exatamente onde deveria estar — em casa, com você.'),
+('Eu não sei como vai ser o resto da nossa história, mas sei que quero escrever cada página dela com você. Com os seus erros, os meus erros, as nossas risadas e os nossos silêncios — porque é tudo isso, junto, que eu chamo de amor.');

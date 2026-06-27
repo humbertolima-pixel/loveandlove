@@ -251,17 +251,39 @@ export default function FormularioCriacao({ token }: { token: string }) {
         />
       </Campo>
 
-      <Campo
-        label="Contem a história de vocês"
-        hint="do jeito que quiser — a gente cuida do resto"
-      >
-        <textarea
-          name="historia"
-          required
-          maxLength={2000}
-          rows={6}
-          className="input-base resize-none"
-          placeholder="Ex: A gente se conheceu numa festa em 2020, mas só começou a conversar de verdade meses depois. Em 2022 fomos morar juntos e desde então..."
+      <Campo label="Onde vocês se conheceram">
+        <input
+          name="onde_se_conheceram"
+          maxLength={120}
+          className="input-base"
+          placeholder="Ex: numa festa de aniversário de um amigo em comum"
+        />
+      </Campo>
+
+      <Campo label="Como foi o primeiro encontro">
+        <input
+          name="primeiro_encontro"
+          maxLength={120}
+          className="input-base"
+          placeholder="Ex: fomos tomar um café e ficamos conversando por horas"
+        />
+      </Campo>
+
+      <Campo label="O que vocês mais amam um no outro">
+        <input
+          name="o_que_mais_amam"
+          maxLength={120}
+          className="input-base"
+          placeholder="Ex: o jeito como ela me faz rir até nos dias difíceis"
+        />
+      </Campo>
+
+      <Campo label="Um sonho que vocês têm juntos">
+        <input
+          name="sonho_juntos"
+          maxLength={120}
+          className="input-base"
+          placeholder="Ex: morar à beira-mar e viajar o mundo"
         />
       </Campo>
 
@@ -310,7 +332,6 @@ export default function FormularioCriacao({ token }: { token: string }) {
             <option value="padrao">Padrão</option>
             <option value="netflix">Netflix</option>
             <option value="spotify">Spotify</option>
-            <option value="instagram">Instagram</option>
           </select>
         </Campo>
       )}

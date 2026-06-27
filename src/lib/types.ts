@@ -1,4 +1,4 @@
-export type Tema = "padrao" | "netflix" | "spotify" | "instagram";
+export type Tema = "padrao" | "netflix" | "spotify";
 
 export interface Bumps {
   tema_exclusivo?: boolean;
@@ -6,6 +6,11 @@ export interface Bumps {
 }
 
 export interface Frase {
+  id: string;
+  texto: string;
+}
+
+export interface Declaracao {
   id: string;
   texto: string;
 }
@@ -28,7 +33,10 @@ export interface Casal {
   nome2: string;
   data_inicio: string; // ISO date
   frase: string;
-  historia: string;
+  onde_se_conheceram: string;
+  primeiro_encontro: string;
+  o_que_mais_amam: string;
+  sonho_juntos: string;
   fotos: string[]; // URLs do Supabase Storage
   musica_url: string | null;
   tema: Tema;

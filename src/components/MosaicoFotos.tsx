@@ -1,12 +1,17 @@
-export default function MosaicoFotos({ fotos }: { fotos: string[] }) {
-  if (fotos.length < 2) return null;
-
-  // Usa até 4 fotos diferentes da primeira (que já aparece no slideshow)
-  const fotosParaMosaico = fotos.slice(1, 5);
+export default function MosaicoFotos({
+  fotos,
+  inicio = 1,
+  quantidade = 4,
+}: {
+  fotos: string[];
+  inicio?: number;
+  quantidade?: number;
+}) {
+  const fotosParaMosaico = fotos.slice(inicio, inicio + quantidade);
   if (fotosParaMosaico.length === 0) return null;
 
   return (
-    <div className="fade-up flex gap-3 justify-center flex-wrap max-w-sm">
+    <div className="fade-up flex gap-3 justify-center flex-wrap max-w-2xl">
       {fotosParaMosaico.map((foto, i) => (
         <div
           key={i}
