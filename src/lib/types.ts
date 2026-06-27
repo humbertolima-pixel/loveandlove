@@ -33,6 +33,7 @@ export interface Casal {
   nome2: string;
   data_inicio: string; // ISO date
   frase: string;
+  historia_bruta: string;
   onde_se_conheceram: string;
   primeiro_encontro: string;
   o_que_mais_amam: string;

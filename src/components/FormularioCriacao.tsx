@@ -260,39 +260,17 @@ export default function FormularioCriacao({ token }: { token: string }) {
         />
       </Campo>
 
-      <Campo label="Onde vocês se conheceram">
-        <input
-          name="onde_se_conheceram"
-          maxLength={120}
-          className="input-base"
-          placeholder="Ex: numa festa de aniversário de um amigo em comum"
-        />
-      </Campo>
-
-      <Campo label="Como foi o primeiro encontro">
-        <input
-          name="primeiro_encontro"
-          maxLength={120}
-          className="input-base"
-          placeholder="Ex: fomos tomar um café e ficamos conversando por horas"
-        />
-      </Campo>
-
-      <Campo label="O que vocês mais amam um no outro">
-        <input
-          name="o_que_mais_amam"
-          maxLength={120}
-          className="input-base"
-          placeholder="Ex: o jeito como ela me faz rir até nos dias difíceis"
-        />
-      </Campo>
-
-      <Campo label="Um sonho que vocês têm juntos">
-        <input
-          name="sonho_juntos"
-          maxLength={120}
-          className="input-base"
-          placeholder="Ex: morar à beira-mar e viajar o mundo"
+      <Campo
+        label="Contem a história de vocês"
+        hint="onde se conheceram, o primeiro encontro, o que mais amam, sonhos juntos — escreva do seu jeito, a gente organiza"
+      >
+        <textarea
+          name="historia"
+          required
+          maxLength={2000}
+          rows={7}
+          className="input-base resize-none"
+          placeholder="Ex: A gente se conheceu numa festa de aniversário de um amigo em comum, em 2020. Só fomos conversar de verdade meses depois, num café que ficamos horas. O que eu mais amo nela é o jeito que ela me faz rir até nos dias difíceis. A gente sonha em morar à beira-mar um dia."
         />
       </Campo>
 

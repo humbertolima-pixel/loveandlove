@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { organizarHistoriaComIA } from "@/lib/organizar-historia";
 import type { Tema } from "@/lib/types";
 
 const MAX_FOTOS = 15;
@@ -27,10 +28,7 @@ export async function POST(req: NextRequest) {
     const nome2 = formData.get("nome2") as string;
     const dataInicio = formData.get("data_inicio") as string;
     const frase = formData.get("frase") as string;
-    const ondeSeConheceram = (formData.get("onde_se_conheceram") as string) || "";
-    const primeiroEncontro = (formData.get("primeiro_encontro") as string) || "";
-    const oQueMaisAmam = (formData.get("o_que_mais_amam") as string) || "";
-    const sonhoJuntos = (formData.get("sonho_juntos") as string) || "";
+    const historiaBruta = (formData.get("historia") as string) || "";
     const musicaUrlBruta = (formData.get("musica_url") as string) || "";
     const musicaUrl = musicaUrlBruta.trim() || null;
     const tema: Tema = "romantico";
@@ -91,6 +89,9 @@ export async function POST(req: NextRequest) {
     // 3. Gerar slug único
     const slug = gerarSlug(nome1, nome2);
 
+    // 3.5. Organizar a história livre em 4 seções com IA
+    const historiaOrganizada = await organizarHistoriaComIA(historiaBruta);
+
     // 4. Salvar o casal
     const { error: casalError } = await supabaseAdmin.from("casais").insert({
       slug,
@@ -98,10 +99,11 @@ export async function POST(req: NextRequest) {
       nome2,
       data_inicio: dataInicio,
       frase,
-      onde_se_conheceram: ondeSeConheceram,
-      primeiro_encontro: primeiroEncontro,
-      o_que_mais_amam: oQueMaisAmam,
-      sonho_juntos: sonhoJuntos,
+      historia_bruta: historiaBruta,
+      onde_se_conheceram: historiaOrganizada.onde_se_conheceram,
+      primeiro_encontro: historiaOrganizada.primeiro_encontro,
+      o_que_mais_amam: historiaOrganizada.o_que_mais_amam,
+      sonho_juntos: historiaOrganizada.sonho_juntos,
       fotos: urlsFotos,
       musica_url: musicaUrl,
       tema,

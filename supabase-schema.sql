@@ -25,6 +25,7 @@ create table if not exists casais (
   nome2 text not null,
   data_inicio date not null,
   frase text not null,
+  historia_bruta text not null default '',
   onde_se_conheceram text not null default '',
   primeiro_encontro text not null default '',
   o_que_mais_amam text not null default '',
