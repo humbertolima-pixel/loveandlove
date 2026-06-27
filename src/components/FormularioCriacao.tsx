@@ -16,8 +16,9 @@ const MAX_FOTOS = 15;
 
 /**
  * Gera uma imagem final em alta resolução (pronta para impressão,
- * ~10x12.5cm a 300dpi) com o QR code centralizado dentro de uma
- * moldura, com o nome do casal acima dele.
+ * ~10x12.5cm a 300dpi) no estilo do cartão LoveAndLove: logo no topo,
+ * nome do casal, QR code com moldura decorada nos cantos, e a frase
+ * "Feito com amor para o amor da minha vida" no rodapé.
  */
 async function gerarQrComMoldura(
   url: string,
@@ -26,47 +27,143 @@ async function gerarQrComMoldura(
 ): Promise<string> {
   const LARGURA = 1200;
   const ALTURA = 1500;
+  const ROSA_ESCURO = "#C9536B";
+  const DOURADO = "#C9974A";
+  const VINHO_TEXTO = "#5A2A3A";
+  const FUNDO = "#FFFAF9";
 
   const canvas = document.createElement("canvas");
   canvas.width = LARGURA;
   canvas.height = ALTURA;
   const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = "#F7EDE2";
+  // Fundo
+  ctx.fillStyle = FUNDO;
   ctx.fillRect(0, 0, LARGURA, ALTURA);
 
-  ctx.strokeStyle = "#C9A875";
-  ctx.lineWidth = 6;
-  ctx.strokeRect(40, 40, LARGURA - 80, ALTURA - 80);
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(70, 70, LARGURA - 140, ALTURA - 140);
+  // Borda externa fina
+  ctx.strokeStyle = DOURADO;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(30, 30, LARGURA - 60, ALTURA - 60);
 
-  ctx.fillStyle = "#1A0E12";
+  // === Logo: coração desenhado + "LoveAndLove" ===
+  const logoY = 140;
+  desenharCoracaoLogo(ctx, LARGURA / 2 - 130, logoY, 36, ROSA_ESCURO);
+  ctx.fillStyle = "#1A1A1A";
+  ctx.textAlign = "left";
+  ctx.font = "bold 52px Georgia, serif";
+  ctx.fillText("LoveAndLove", LARGURA / 2 - 80, logoY + 18);
+
+  // Linha decorativa com coraçãozinho
+  const linhaY = logoY + 60;
+  ctx.strokeStyle = DOURADO;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(LARGURA / 2 - 200, linhaY);
+  ctx.lineTo(LARGURA / 2 - 24, linhaY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(LARGURA / 2 + 24, linhaY);
+  ctx.lineTo(LARGURA / 2 + 200, linhaY);
+  ctx.stroke();
+  desenharCoracaoLogo(ctx, LARGURA / 2 - 12, linhaY - 8, 12, DOURADO);
+
+  // Nome do casal
+  ctx.fillStyle = VINHO_TEXTO;
   ctx.textAlign = "center";
-  ctx.font = "italic 600 64px Georgia, serif";
+  ctx.font = "italic 600 56px Georgia, serif";
   const nomeTexto = `${nome1 || ""} & ${nome2 || ""}`;
-  ctx.fillText(nomeTexto, LARGURA / 2, 220, LARGURA - 200);
+  ctx.fillText(nomeTexto, LARGURA / 2, linhaY + 90, LARGURA - 160);
+
+  // === QR code com moldura decorada nos cantos (sem retângulo completo) ===
+  const qrTamanho = 680;
+  const qrX = (LARGURA - qrTamanho) / 2;
+  const qrY = 340;
 
   const qrDataUrl = await QRCode.toDataURL(url, {
-    width: 760,
+    width: qrTamanho,
     margin: 1,
-    color: { dark: "#1A0E12", light: "#F7EDE2" },
+    color: { dark: VINHO_TEXTO, light: FUNDO },
   });
   const qrImg = await carregarImagem(qrDataUrl);
-  const qrTamanho = 760;
-  const qrX = (LARGURA - qrTamanho) / 2;
-  const qrY = 300;
+
+  // Cantos decorados (estilo "moldura de convite")
+  const margemMoldura = 34;
+  desenharCantoDecorado(ctx, qrX - margemMoldura, qrY - margemMoldura, 1, 1, DOURADO);
+  desenharCantoDecorado(ctx, qrX + qrTamanho + margemMoldura, qrY - margemMoldura, -1, 1, DOURADO);
+  desenharCantoDecorado(ctx, qrX - margemMoldura, qrY + qrTamanho + margemMoldura, 1, -1, DOURADO);
+  desenharCantoDecorado(ctx, qrX + qrTamanho + margemMoldura, qrY + qrTamanho + margemMoldura, -1, -1, DOURADO);
+
   ctx.drawImage(qrImg, qrX, qrY, qrTamanho, qrTamanho);
 
-  ctx.font = "32px Georgia, serif";
-  ctx.fillStyle = "#3D1F2B";
-  ctx.fillText("aponte a câmera e reviva a história de vocês", LARGURA / 2, qrY + qrTamanho + 70, LARGURA - 160);
+  // === Frase final ===
+  const fraseY = qrY + qrTamanho + 120;
+  ctx.fillStyle = ROSA_ESCURO;
+  ctx.font = "italic 600 40px Georgia, serif";
+  ctx.fillText("Feito com amor", LARGURA / 2, fraseY, LARGURA - 140);
+  ctx.fillText("para o amor da minha vida", LARGURA / 2, fraseY + 54, LARGURA - 140);
 
-  ctx.font = "italic 28px Georgia, serif";
-  ctx.fillStyle = "#C9A875";
-  ctx.fillText("LoveAndLove", LARGURA / 2, ALTURA - 80);
+  desenharCoracaoLogo(ctx, LARGURA / 2 - 16, fraseY + 90, 32, DOURADO);
 
   return canvas.toDataURL("image/png");
+}
+
+/** Desenha um pequeno ícone de coração no canvas, usado na logo e decorações. */
+function desenharCoracaoLogo(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  tamanho: number,
+  cor: string
+) {
+  ctx.save();
+  ctx.fillStyle = cor;
+  ctx.beginPath();
+  const topCurveHeight = tamanho * 0.3;
+  ctx.moveTo(x, y + topCurveHeight);
+  ctx.bezierCurveTo(x, y, x - tamanho / 2, y, x - tamanho / 2, y + topCurveHeight);
+  ctx.bezierCurveTo(
+    x - tamanho / 2,
+    y + (tamanho + topCurveHeight) / 2,
+    x,
+    y + (tamanho + topCurveHeight) / 1.3,
+    x,
+    y + tamanho
+  );
+  ctx.bezierCurveTo(
+    x,
+    y + (tamanho + topCurveHeight) / 1.3,
+    x + tamanho / 2,
+    y + (tamanho + topCurveHeight) / 2,
+    x + tamanho / 2,
+    y + topCurveHeight
+  );
+  ctx.bezierCurveTo(x + tamanho / 2, y, x, y, x, y + topCurveHeight);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Desenha um canto decorado tipo "L" nas extremidades da moldura do QR. */
+function desenharCantoDecorado(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  dirX: 1 | -1,
+  dirY: 1 | -1,
+  cor: string
+) {
+  const tamanho = 54;
+  ctx.save();
+  ctx.strokeStyle = cor;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x, y + tamanho * dirY);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + tamanho * dirX, y);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function carregarImagem(src: string): Promise<HTMLImageElement> {
