@@ -69,17 +69,22 @@ function carregarYoutubeApi(callback: () => void) {
 }
 
 /**
- * Player de música robusto e visível.
+ * Player de música robusto.
  *
  * Para YouTube: usa a IFrame API oficial e chama playVideo()
  * explicitamente dentro do mesmo gesto de clique do usuário — isso é
  * respeitado pelos navegadores, diferente de só colocar autoplay=1 na
  * URL de um iframe escondido (que é silenciosamente bloqueado).
  *
- * Importante: o player só é criado depois que o elemento alvo já
- * está garantidamente no DOM (via callback ref), nunca antes — criar
- * o YT.Player apontando para um id que ainda não existe falha em
- * silêncio, sem erro no console, o que parece "não fazer nada".
+ * Importante sobre tamanho: o YouTube exige um tamanho mínimo pro
+ * player (abaixo disso, ele sempre mostra os controles nativos
+ * sobrepostos, incluindo o link "abrir no YouTube" — clicar nessa
+ * área tira a pessoa da nossa página). Por isso o player nunca é
+ * menor que 200x113 (mínimo absoluto do YouTube), usamos
+ * `controls: 0` pra esconder os controles deles, e colocamos uma
+ * camada transparente por cima que bloqueia qualquer clique no
+ * player — assim ele só toca o som, sem nenhuma interação possível
+ * que leve a pessoa pra fora da página.
  */
 export default function PlayerMusica({
   midia,
@@ -103,7 +108,15 @@ export default function PlayerMusica({
       try {
         new window.YT.Player(el, {
           videoId: midia.id,
-          playerVars: { autoplay: 1, playsinline: 1 },
+          playerVars: {
+            autoplay: 1,
+            playsinline: 1,
+            controls: 0, // remove os controles nativos do YouTube
+            disablekb: 1, // desabilita atalhos de teclado
+            modestbranding: 1, // reduz a marca do YouTube (não remove 100%, mas minimiza)
+            rel: 0,
+            fs: 0, // desabilita botão de tela cheia
+          },
           events: {
             onReady: (event) => {
               event.target.playVideo();
@@ -118,9 +131,11 @@ export default function PlayerMusica({
 
   if (!ativo || !midia) return null;
 
+  // 200x113 é o tamanho mínimo absoluto exigido pelo YouTube para o
+  // player embutido funcionar corretamente sem forçar controles extras.
   const dimensoes =
     tamanho === "pequeno"
-      ? { width: 160, height: 90 }
+      ? { width: 200, height: 113 }
       : { width: 320, height: 180 };
 
   if (midia.tipo === "youtube") {
@@ -132,12 +147,32 @@ export default function PlayerMusica({
           borderRadius: 10,
           overflow: "hidden",
           background: "rgba(0,0,0,0.3)",
+          position: "relative",
         }}
       >
         {erro ? (
           <p style={{ color: "#fff", fontSize: 11, padding: 8 }}>{erro}</p>
         ) : (
-          <div ref={montarPlayerYoutube} style={{ width: "100%", height: "100%" }} />
+          <>
+            <div
+              ref={montarPlayerYoutube}
+              style={{ width: "100%", height: "100%", pointerEvents: "none" }}
+            />
+            {/* Camada transparente por cima: bloqueia qualquer clique no
+                player (incluindo nos controles nativos escondidos do
+                YouTube), evitando que a pessoa seja levada pra fora da
+                página por engano. O áudio continua tocando normalmente,
+                já que isso não pausa o player, só impede interação. */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                cursor: "default",
+              }}
+              onClick={(e) => e.preventDefault()}
+              aria-hidden
+            />
+          </>
         )}
       </div>
     );

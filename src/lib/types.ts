@@ -38,6 +38,7 @@ export interface Casal {
   primeiro_encontro: string;
   o_que_mais_amam: string;
   sonho_juntos: string;
+  declaracao: string;
   fotos: string[]; // URLs do Supabase Storage
   musica_url: string | null;
   tema: Tema;

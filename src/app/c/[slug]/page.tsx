@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import type { Casal, Declaracao, Frase } from "@/lib/types";
+import type { Casal, Frase } from "@/lib/types";
 import ExperienciaCasal from "@/components/ExperienciaCasal";
 
 const UM_ANO_MS = 365 * 24 * 60 * 60 * 1000;
@@ -27,9 +27,9 @@ async function buscarCasal(slug: string): Promise<Casal | null> {
   return data as Casal;
 }
 
-async function buscarItemAleatorio<T>(tabela: string): Promise<T | null> {
+async function buscarFraseAleatoria(): Promise<Frase | null> {
   const { count } = await supabaseAdmin
-    .from(tabela)
+    .from("frases")
     .select("*", { count: "exact", head: true });
 
   if (!count || count === 0) return null;
@@ -37,14 +37,14 @@ async function buscarItemAleatorio<T>(tabela: string): Promise<T | null> {
   const indiceAleatorio = Math.floor(Math.random() * count);
 
   const { data, error } = await supabaseAdmin
-    .from(tabela)
+    .from("frases")
     .select("*")
     .range(indiceAleatorio, indiceAleatorio)
     .limit(1)
     .single();
 
   if (error || !data) return null;
-  return data as T;
+  return data as Frase;
 }
 
 export async function generateMetadata({
@@ -73,18 +73,9 @@ export default async function PaginaCasal({ params }: PageProps) {
     return <PaginaExpirada />;
   }
 
-  const [fraseAleatoria, declaracaoAleatoria] = await Promise.all([
-    buscarItemAleatorio<Frase>("frases"),
-    buscarItemAleatorio<Declaracao>("declaracoes"),
-  ]);
+  const fraseAleatoria = await buscarFraseAleatoria();
 
-  return (
-    <ExperienciaCasal
-      casal={casal}
-      fraseAleatoria={fraseAleatoria}
-      declaracaoAleatoria={declaracaoAleatoria}
-    />
-  );
+  return <ExperienciaCasal casal={casal} fraseAleatoria={fraseAleatoria} />;
 }
 
 function PaginaExpirada() {

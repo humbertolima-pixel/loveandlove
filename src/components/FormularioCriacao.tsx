@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { detectarMidia } from "@/components/PlayerMusica";
+import BuscaMusica from "@/components/BuscaMusica";
 
 type EstadoToken = "verificando" | "valido" | "invalido" | "ja_usado";
 
@@ -180,7 +181,6 @@ export default function FormularioCriacao({ token }: { token: string }) {
     token ? "verificando" : "invalido"
   );
   const [bumps, setBumps] = useState<Bumps>({});
-  const [buscaMusica, setBuscaMusica] = useState("");
   const [musicaUrl, setMusicaUrl] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -205,12 +205,6 @@ export default function FormularioCriacao({ token }: { token: string }) {
       })
       .catch(() => setEstadoToken("invalido"));
   }, [token]);
-
-  function abrirBuscaYoutube() {
-    if (!buscaMusica.trim()) return;
-    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(buscaMusica)}`;
-    window.open(url, "_blank");
-  }
 
   const musicaUrlLimpa = musicaUrl.trim();
   const avisoMusica =
@@ -382,38 +376,7 @@ export default function FormularioCriacao({ token }: { token: string }) {
         />
       </Campo>
 
-      <div className="space-y-2">
-        <span className="block text-cream/90 text-sm font-medium font-body">
-          Música de vocês
-        </span>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={buscaMusica}
-            onChange={(e) => setBuscaMusica(e.target.value)}
-            placeholder="Nome da música ou artista"
-            className="input-base flex-1"
-          />
-          <button
-            type="button"
-            onClick={abrirBuscaYoutube}
-            className="px-4 py-2 rounded-xl bg-cream/10 text-cream text-sm font-body whitespace-nowrap hover:bg-cream/20 transition"
-          >
-            Buscar no YouTube
-          </button>
-        </div>
-        <input
-          type="text"
-          name="musica_url"
-          value={musicaUrl}
-          onChange={(e) => setMusicaUrl(e.target.value)}
-          placeholder="Cole aqui o link que você encontrou (Spotify ou YouTube)"
-          className="input-base"
-        />
-        {avisoMusica && (
-          <p className="text-rose font-body text-xs">{avisoMusica}</p>
-        )}
-      </div>
+      <BuscaMusica musicaUrl={musicaUrl} setMusicaUrl={setMusicaUrl} avisoMusica={avisoMusica} />
 
       {bumps.para_sempre && (
         <p className="text-gold font-body text-sm text-center">

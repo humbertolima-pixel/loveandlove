@@ -1,24 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import type { Casal, Declaracao, Frase } from "@/lib/types";
+import type { Casal, Frase } from "@/lib/types";
 import ContadorVivo from "@/components/ContadorVivo";
 import SlideshowFotos from "@/components/SlideshowFotos";
-import MosaicoFotos from "@/components/MosaicoFotos";
 import SecaoAlbum from "@/components/SecaoAlbum";
+import GaleriaCompleta from "@/components/GaleriaCompleta";
 import PlayerMusica, { detectarMidia } from "@/components/PlayerMusica";
 
 export default function TemaRomantico({
   casal,
   fraseAleatoria,
-  declaracaoAleatoria,
   comecou,
   onComecar,
 }: {
   casal: Casal;
   fraseAleatoria: Frase | null;
-  declaracaoAleatoria: Declaracao | null;
   comecou: boolean;
   onComecar: () => void;
 }) {
@@ -32,6 +29,12 @@ export default function TemaRomantico({
     { titulo: "o que eu mais amo em você", texto: casal.o_que_mais_amam, foto: fotos[3] },
     { titulo: "o que sonhamos juntos", texto: casal.sonho_juntos, foto: fotos[4] },
   ];
+
+  // Todas as fotos a partir da 5ª (índice 5) vão pra galeria completa,
+  // que garante que TODA foto enviada apareça em algum lugar da
+  // página — repetindo o padrão de grade quantas vezes for preciso
+  // caso o casal tenha enviado menos de 15 fotos.
+  const fotosGaleria = fotos.slice(5);
 
   return (
     <div className="rom-root">
@@ -79,6 +82,10 @@ export default function TemaRomantico({
         .secao-frase { max-width: 600px; margin: 0 auto; padding: 3rem 6vw; text-align: center; }
         .secao-frase p { font-family: Georgia, serif; font-style: italic; font-size: 1.2rem; line-height: 1.6; color: #5a2a3a; }
 
+        .galeria-head { text-align: center; padding: 0 6vw 1rem; }
+        .galeria-head .tag { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--rosa-escuro); font-weight: 700; }
+        .galeria-head h2 { font-family: Georgia, serif; font-style: italic; font-size: clamp(1.5rem, 4vw, 2rem); margin-top: .5rem; color: #5a2a3a; }
+
         footer { text-align: center; padding: 2rem 1rem 3rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--rosa-escuro); }
       `}</style>
 
@@ -124,16 +131,24 @@ export default function TemaRomantico({
           </div>
         )}
 
-        <MosaicoFotos fotos={fotos} inicio={5} quantidade={8} />
+        {fotosGaleria.length > 0 && (
+          <div className="w-full max-w-3xl">
+            <div className="galeria-head fade-up">
+              <span className="tag">galeria</span>
+              <h2>cada foto, um pedacinho da gente</h2>
+            </div>
+            <GaleriaCompleta fotos={fotosGaleria} />
+          </div>
+        )}
 
-        {declaracaoAleatoria && (
+        {casal.declaracao && (
           <div className="fade-up max-w-lg text-center px-6">
             <p style={{ fontSize: "1.6rem", marginBottom: ".6rem" }}>💕</p>
             <p className="font-body text-xs uppercase tracking-[0.2em] text-rose-600/70 mb-4">
               uma declaração pra vocês
             </p>
             <p className="font-display text-wine-text text-lg md:text-xl italic leading-relaxed">
-              {declaracaoAleatoria.texto}
+              {casal.declaracao}
             </p>
           </div>
         )}

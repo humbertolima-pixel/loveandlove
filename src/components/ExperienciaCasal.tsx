@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { Casal, Declaracao, Frase } from "@/lib/types";
+import type { Casal, Frase } from "@/lib/types";
 import TemaRomantico from "@/components/temas/TemaRomantico";
 
 export default function ExperienciaCasal({
   casal,
   fraseAleatoria,
-  declaracaoAleatoria,
 }: {
   casal: Casal;
   fraseAleatoria: Frase | null;
-  declaracaoAleatoria: Declaracao | null;
 }) {
   const [comecou, setComecou] = useState(false);
 
@@ -19,7 +17,6 @@ export default function ExperienciaCasal({
     <TemaRomantico
       casal={casal}
       fraseAleatoria={fraseAleatoria}
-      declaracaoAleatoria={declaracaoAleatoria}
       comecou={comecou}
       onComecar={() => setComecou(true)}
     />

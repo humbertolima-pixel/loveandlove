@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
       primeiro_encontro: historiaOrganizada.primeiro_encontro,
       o_que_mais_amam: historiaOrganizada.o_que_mais_amam,
       sonho_juntos: historiaOrganizada.sonho_juntos,
+      declaracao: historiaOrganizada.declaracao,
       fotos: urlsFotos,
       musica_url: musicaUrl,
       tema,

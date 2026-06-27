@@ -30,6 +30,7 @@ create table if not exists casais (
   primeiro_encontro text not null default '',
   o_que_mais_amam text not null default '',
   sonho_juntos text not null default '',
+  declaracao text not null default '',
   fotos jsonb not null default '[]'::jsonb,
   musica_url text,
   tema text not null default 'romantico',
