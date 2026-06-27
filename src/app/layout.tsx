@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import MetaPixel from "@/components/MetaPixel";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${fraunces.variable} ${inter.variable} antialiased`}>
+        <MetaPixel />
         {children}
       </body>
     </html>

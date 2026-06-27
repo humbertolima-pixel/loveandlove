@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { enviarCompraParaMeta } from "@/lib/meta-conversions-api";
 import type { Bumps } from "@/lib/types";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -40,6 +41,12 @@ export async function POST(req: NextRequest) {
       payload?.data?.customer?.name ?? payload?.customer?.name;
     const planoId: string | undefined =
       payload?.data?.product?.name ?? payload?.product?.name ?? "padrao";
+    // Valor pago — ajustar o caminho exato conforme o payload real da
+    // Cakto confirmar (pode vir em centavos ou em reais, dependendo).
+    const valorPago: number =
+      Number(payload?.data?.amount ?? payload?.amount ?? 0) || 34.99;
+    const idTransacao: string =
+      payload?.data?.id ?? payload?.id ?? randomBytes(8).toString("hex");
 
     if (!email) {
       return NextResponse.json(
@@ -102,6 +109,14 @@ export async function POST(req: NextRequest) {
           <p style="color: #888; font-size: 13px;">Se o botão não funcionar, copie e cole este link: ${linkCriacao}</p>
         </div>
       `,
+    });
+
+    // 6. Enviar evento de Purchase pro Meta (Conversions API), sem
+    //    bloquear o fluxo principal se isso falhar.
+    await enviarCompraParaMeta({
+      email,
+      valor: valorPago,
+      idTransacao,
     });
 
     return NextResponse.json({ recebido: true, token });

@@ -229,6 +229,31 @@ amor para o amor da minha vida". Lógica em `gerarQrComMoldura()` dentro de
    vertical, com música tocando — e se o casal não comprou o bump "para
    sempre", a página expira depois de 1 ano
 
+## Meta Pixel e Conversions API
+
+O site dispara dois tipos de evento pro Meta (Facebook/Instagram Ads):
+
+- **PageView** e **InitiateCheckout** — disparados no navegador via Pixel
+  (`MetaPixel.tsx`), automaticamente em toda página e no clique do botão
+  "Criar nossa página agora".
+- **Purchase** — disparado direto do servidor via Conversions API
+  (`meta-conversions-api.ts`), no momento em que o webhook da Cakto
+  confirma um pagamento aprovado. Essa abordagem é mais confiável que
+  depender só do pixel no navegador, porque não é afetada por
+  bloqueadores de anúncio, cookies desabilitados, ou pelo cliente fechar
+  a aba antes do pixel disparar.
+
+Pra configurar: crie um Pixel no Gerenciador de Eventos do Meta
+(business.facebook.com/events_manager), copie o ID do pixel pra
+`NEXT_PUBLIC_META_PIXEL_ID`, e gere um token de acesso da Conversions API
+(dentro do mesmo Pixel, em "API de Conversões" → Ações → gerar token
+manualmente) pra `META_CONVERSIONS_API_TOKEN`.
+
+**Atenção:** o valor da venda lido no webhook (`valorPago` em
+`src/app/api/webhook/cakto/route.ts`) está com um valor fixo de fallback
+(R$34,99) até você confirmar o campo exato em que a Cakto envia o valor
+pago no payload real — ajuste isso no primeiro teste de compra real.
+
 ## Pendências que ficaram para você decidir/testar
 
 - **Crédito da Anthropic e cota da YouTube API**: monitorar o consumo

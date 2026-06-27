@@ -1,3 +1,5 @@
+import BotaoCheckout from "@/components/BotaoCheckout";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-wine">
@@ -103,9 +105,8 @@ export default function Home() {
               "Até 15 fotos",
               "Contador ao vivo de dias juntos",
               "Sua história em destaque",
-              "Declaração de amor incluída",
+              "Declaração de amor única, escrita pra vocês",
               "QR code pronto pra imprimir, com moldura",
-              "Tema exclusivo: Netflix ou Spotify",
               "Página nunca expira",
             ].map((item) => (
               <li key={item} className="flex gap-2">
@@ -113,12 +114,12 @@ export default function Home() {
               </li>
             ))}
           </ul>
-          <a
+          <BotaoCheckout
             href="https://pay.cakto.com.br/3ezuy3k_945139"
             className="text-center font-body font-semibold py-3.5 rounded-full bg-gold text-wine-black hover:opacity-90 transition"
           >
             Criar nossa página agora
-          </a>
+          </BotaoCheckout>
         </div>
       </section>
 
