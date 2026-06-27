@@ -150,7 +150,7 @@ function Plano({
         ))}
       </ul>
       <a
-        href="https://pay.cakto.com.br/SEU-CHECKOUT-AQUI"
+        href="https://pay.cakto.com.br/3ezuy3k_945139"
         className={`text-center font-body font-semibold py-3 rounded-full transition ${
           destaque
             ? "bg-gold text-wine-black hover:opacity-90"
