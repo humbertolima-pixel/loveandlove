@@ -347,9 +347,15 @@ export default function FormularioCriacao({ token }: { token: string }) {
         <Campo label="Tema da página">
           <select name="tema" className="input-base">
             <option value="padrao">Padrão</option>
-            <option value="netflix">Estilo Netflix</option>
-            <option value="polaroid-vintage">Polaroid vintage</option>
-            <option value="spotify">Estilo Spotify</option>
+            <option value="netflix">Netflix</option>
+            <option value="spotify">Spotify</option>
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="mercadolivre">Mercado Livre</option>
+            <option value="shopee">Shopee</option>
+            <option value="shein">Shein</option>
+            <option value="facebook">Facebook</option>
+            <option value="youtube">YouTube</option>
           </select>
         </Campo>
       )}

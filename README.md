@@ -122,8 +122,22 @@ supabase-schema.sql              → schema completo pra colar no Supabase
   formulário, exibidos como linha do tempo vertical.
 - **Música embutida** — Spotify ou YouTube, com autoplay habilitado depois
   do clique na tela de convite.
-- **3 temas exclusivos** (order bump) — Netflix, Polaroid vintage, Spotify.
-- **Footer "feito com LoveAndLove 💛"**
+- **9 temas exclusivos completos** (order bump) — cada um é um layout inteiro,
+  não só uma re-pintura de cores:
+  - **Netflix** — minissérie com episódios (cronologia), elenco, sinopse
+  - **Spotify** — playlist com faixas (cronologia), capa, mini player
+  - **Instagram** — perfil com destaques (cronologia), feed, posts
+  - **TikTok** — vídeo vertical em loop, comentários, curtidas
+  - **Mercado Livre** — página de produto, preço R$0, avaliações
+  - **Shopee** — produto com selo de desconto, estética laranja vibrante
+  - **Shein** — produto de moda, carrossel de fotos, selo de desconto
+  - **Facebook** — feed de timeline clássico, posts com fotos
+  - **YouTube** — canal com vídeos (cronologia como thumbnails)
+  
+  Cada tema é um componente próprio em `src/components/temas/`, recebendo os
+  dados reais do casal (nomes, fotos, frase, marcos, música) em vez de
+  conteúdo fixo. O roteamento entre eles fica em `ExperienciaCasal.tsx`.
+- **Footer "feito com LoveAndLove 💛"** (presente em todos os temas)
 
 ## QR code com moldura
 

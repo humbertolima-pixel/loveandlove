@@ -1,4 +1,14 @@
-export type Tema = "padrao" | "netflix" | "polaroid-vintage" | "spotify";
+export type Tema =
+  | "padrao"
+  | "netflix"
+  | "spotify"
+  | "instagram"
+  | "tiktok"
+  | "mercadolivre"
+  | "shopee"
+  | "shein"
+  | "facebook"
+  | "youtube";
 
 export interface Bumps {
   tema_exclusivo?: boolean;
